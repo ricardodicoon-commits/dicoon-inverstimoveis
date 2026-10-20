@@ -34,3 +34,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# vite
+/dist
+
+# chaves locais (nunca enviar ao GitHub)
+.env
+.env.*
+!.env.example
+
+# backups com dados de clientes ou senhas
+backup/
+*.sql
