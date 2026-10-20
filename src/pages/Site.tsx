@@ -212,17 +212,13 @@ function Contato() {
   return (
     <section id="contato" className="px-4 py-24">
       <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_1.1fr]">
-        <div className="relative mx-auto w-full max-w-sm lg:max-w-none">
+        <div className="relative mx-auto w-full max-w-xl lg:max-w-none">
           <img
-            src="/img/ricardo.jpg"
-            alt="Ricardo Schimuneck, Dicoon Invest"
+            src="/img/familia.jpg"
+            alt="Família feliz em casa"
             loading="lazy"
-            className="aspect-[3/4] w-full rounded-2xl border border-line object-cover"
+            className="aspect-[4/3] w-full rounded-2xl border border-line object-cover"
           />
-          <div className="absolute inset-x-4 bottom-4 rounded-xl border border-gold/30 bg-ink/85 p-4 backdrop-blur">
-            <p className="font-bold text-white">Ricardo Schimuneck</p>
-            <p className="text-sm text-gold">Correspondente Bancário · Seguros · Imóveis</p>
-          </div>
         </div>
         <div>
           <Titulo sobre="Vamos conversar?" titulo="Fale com um especialista e descubra a melhor solução para" destaque="você ou sua empresa." />
@@ -307,28 +303,20 @@ export function Site() {
       </section>
 
       <section id="sobre" className="border-y border-line bg-coal px-4 py-24">
-        <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
-          <div>
-            <Titulo sobre="Quem somos" titulo="A Dicoon Invest" destaque="Imóveis" />
-            <p className="text-lg leading-relaxed text-muted">
-              A Dicoon Invest Imóveis reúne em um só lugar crédito, seguros e imóveis. Nosso trabalho é entender o
-              momento de cada cliente e encontrar a solução certa, com atendimento próximo e transparente.
-            </p>
-            <div className="mt-10 grid gap-5 sm:grid-cols-2">
-              {diferenciais.map((d) => (
-                <div key={d.titulo} className="rounded-2xl border border-line bg-ink p-5">
-                  <h3 className="text-sm font-bold text-gold">{d.titulo}</h3>
-                  <p className="mt-2 text-sm text-muted">{d.texto}</p>
-                </div>
-              ))}
-            </div>
+        <div className="mx-auto max-w-7xl">
+          <Titulo sobre="Quem somos" titulo="A Dicoon Invest" destaque="Imóveis" />
+          <p className="max-w-3xl text-lg leading-relaxed text-muted">
+            A Dicoon Invest Imóveis reúne em um só lugar crédito, seguros e imóveis. Nosso trabalho é entender o
+            momento de cada cliente e encontrar a solução certa, com atendimento próximo e transparente.
+          </p>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {diferenciais.map((d) => (
+              <div key={d.titulo} className="rounded-2xl border border-line bg-ink p-5">
+                <h3 className="text-sm font-bold text-gold">{d.titulo}</h3>
+                <p className="mt-2 text-sm text-muted">{d.texto}</p>
+              </div>
+            ))}
           </div>
-          <img
-            src="/img/fachada.jpg"
-            alt="Fachada da Dicoon Invest Imóveis em Canoas/RS"
-            loading="lazy"
-            className="w-full rounded-2xl border border-line object-cover"
-          />
         </div>
       </section>
 
