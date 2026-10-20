@@ -1,10 +1,10 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Logo } from '../components/Logo'
 import { empresa, linkWhatsApp } from '../config'
 
 const menu = [
   { href: '#inicio', rotulo: 'Home' },
-  { href: '#sobre', rotulo: 'A Dicoon Invest' },
+  { href: '#sobre', rotulo: 'A Dicoon Invest Imóveis' },
   { href: '#produtos', rotulo: 'Produtos' },
   { href: '#parceiros', rotulo: 'Parceiros' },
   { href: '#contato', rotulo: 'Contatos' },
@@ -14,27 +14,21 @@ const produtos = [
   {
     titulo: 'Correspondente Bancário',
     texto: 'Atendimento para crédito junto a instituições financeiras parceiras, com orientação do início ao fim.',
+    icone: 'banco',
   },
   {
     titulo: 'Financiamentos',
     texto: 'Financiamento imobiliário e de veículos, com simulação e acompanhamento da proposta.',
+    icone: 'casa',
   },
   {
     titulo: 'Consórcios',
     texto: 'Planejamento para conquistar imóvel ou veículo sem juros de financiamento.',
+    icone: 'calendario',
   },
-  {
-    titulo: 'Seguros',
-    texto: 'Proteção para você, sua família, seu patrimônio e seu negócio.',
-  },
-  {
-    titulo: 'Investimentos',
-    texto: 'Orientação para fazer seu dinheiro trabalhar a seu favor.',
-  },
-  {
-    titulo: 'Imóveis',
-    texto: 'Compra, venda e locação de imóveis em Canoas e região.',
-  },
+  { titulo: 'Seguros', texto: 'Proteção para você, sua família, seu patrimônio e seu negócio.', icone: 'escudo' },
+  { titulo: 'Investimentos', texto: 'Orientação para fazer seu dinheiro trabalhar a seu favor.', icone: 'grafico' },
+  { titulo: 'Imóveis', texto: 'Compra, venda e locação de imóveis em Canoas e região.', icone: 'predio' },
 ]
 
 const diferenciais = [
@@ -44,44 +38,82 @@ const diferenciais = [
   { titulo: 'Acompanhamento', texto: 'Seguimos com você até a conclusão do processo.' },
 ]
 
-function Titulo({ sobre, titulo }: { sobre: string; titulo: string }) {
+const icones: Record<string, ReactNode> = {
+  banco: <path d="M3 10h18M5 10v8m4-8v8m6-8v8m4-8v8M3 21h18M12 3l9 5H3l9-5z" />,
+  casa: <path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9z" />,
+  calendario: <path d="M4 6h16v15H4zM4 10h16M8 3v4m8-4v4" />,
+  escudo: <path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3z" />,
+  grafico: <path d="M4 20V10m6 10V4m6 16v-7m4 7H2" />,
+  predio: <path d="M5 21V4h9v17M14 9h5v12M8 8h3m-3 4h3m-3 4h3M3 21h18" />,
+  documento: <path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6m-6 4h6" />,
+  pessoa: <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9a7 7 0 0 1 14 0" />,
+}
+
+function Icone({ nome, className = 'h-5 w-5' }: { nome: string; className?: string }) {
   return (
-    <div className="mb-10 text-center">
-      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">{sobre}</p>
-      <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">{titulo}</h2>
-      <div className="mx-auto mt-4 h-0.5 w-16 bg-gold" />
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {icones[nome]}
+    </svg>
+  )
+}
+
+function Titulo({ sobre, titulo, destaque }: { sobre: string; titulo: string; destaque?: string }) {
+  return (
+    <div className="mb-12">
+      <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-gold">
+        <span className="h-px w-8 bg-gold" />
+        {sobre}
+      </p>
+      <h2 className="mt-3 text-2xl font-bold normal-case tracking-normal text-white sm:text-4xl">
+        {titulo} {destaque && <span className="text-gold">{destaque}</span>}
+      </h2>
     </div>
   )
 }
 
+const botaoContrate = 'Olá! Quero contratar on-line pelo site da Dicoon Invest.'
+
 function Cabecalho() {
   const [aberto, setAberto] = useState(false)
+  const [rolou, setRolou] = useState(false)
+
+  useEffect(() => {
+    const aoRolar = () => setRolou(window.scrollY > 40)
+    aoRolar()
+    window.addEventListener('scroll', aoRolar, { passive: true })
+    return () => window.removeEventListener('scroll', aoRolar)
+  }, [])
+
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-line bg-ink/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <a href="#inicio" aria-label="Dicoon Invest - início">
+    <header
+      className={`fixed inset-x-0 top-0 z-40 transition-colors ${rolou || aberto ? 'border-b border-line bg-ink/95 backdrop-blur' : 'bg-transparent'}`}
+    >
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-4">
+        <a href="#inicio" aria-label="Dicoon Invest - início" className="shrink-0">
           <Logo />
         </a>
-        <nav className="hidden items-center gap-6 lg:flex">
+        <nav className="hidden items-center gap-8 xl:flex">
           {menu.map((m) => (
-            <a key={m.href} href={m.href} className="text-xs font-semibold uppercase tracking-wider text-muted hover:text-gold">
+            <a key={m.href} href={m.href} className="text-sm font-semibold uppercase tracking-wide text-white/90 hover:text-gold">
               {m.rotulo}
             </a>
           ))}
-          <a href="/app" className="text-xs font-semibold uppercase tracking-wider text-muted hover:text-gold">
-            Área do Cliente
-          </a>
+        </nav>
+        <div className="hidden items-center gap-3 xl:flex">
           <a
-            href={linkWhatsApp('Olá! Quero contratar on-line pelo site da Dicoon Invest.')}
+            href={linkWhatsApp(botaoContrate)}
             target="_blank"
             rel="noreferrer"
-            className="rounded-full bg-gold px-4 py-2 text-xs font-bold uppercase tracking-wider text-ink hover:bg-gold-deep"
+            className="flex items-center gap-2 rounded-full border border-white/25 bg-black/40 px-5 py-2.5 text-sm font-semibold text-white hover:border-gold hover:text-gold"
           >
-            Contrate On-Line
+            <Icone nome="documento" className="h-4 w-4" /> Contrate On-Line
           </a>
-        </nav>
+          <a href="/app" className="flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-ink hover:bg-gold-deep">
+            <Icone nome="pessoa" className="h-4 w-4" /> Área do Cliente
+          </a>
+        </div>
         <button
-          className="rounded border border-line p-2 text-gold lg:hidden"
+          className="rounded border border-white/25 p-2 text-gold xl:hidden"
           onClick={() => setAberto(!aberto)}
           aria-label="Abrir menu"
           aria-expanded={aberto}
@@ -92,28 +124,74 @@ function Cabecalho() {
         </button>
       </div>
       {aberto && (
-        <nav className="border-t border-line bg-ink px-4 py-4 lg:hidden">
-          {[...menu, { href: '/app', rotulo: 'Área do Cliente' }].map((m) => (
+        <nav className="border-t border-line px-4 pb-5 xl:hidden">
+          {menu.map((m) => (
             <a
               key={m.href}
               href={m.href}
               onClick={() => setAberto(false)}
-              className="block py-3 text-sm font-semibold uppercase tracking-wider text-muted hover:text-gold"
+              className="block py-3 text-sm font-semibold uppercase tracking-wider text-white/90 hover:text-gold"
             >
               {m.rotulo}
             </a>
           ))}
-          <a
-            href={linkWhatsApp('Olá! Quero contratar on-line pelo site da Dicoon Invest.')}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-2 block rounded-full bg-gold px-4 py-3 text-center text-sm font-bold uppercase tracking-wider text-ink"
-          >
-            Contrate On-Line
-          </a>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <a
+              href={linkWhatsApp(botaoContrate)}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-2 rounded-full border border-white/25 px-4 py-3 text-sm font-semibold text-white"
+            >
+              <Icone nome="documento" className="h-4 w-4" /> Contrate On-Line
+            </a>
+            <a href="/app" className="flex items-center justify-center gap-2 rounded-full bg-gold px-4 py-3 text-sm font-semibold text-ink">
+              <Icone nome="pessoa" className="h-4 w-4" /> Área do Cliente
+            </a>
+          </div>
         </nav>
       )}
     </header>
+  )
+}
+
+function Hero() {
+  return (
+    <section id="inicio" className="relative flex min-h-screen items-center overflow-hidden px-4 pb-16 pt-28">
+      <img
+        src="/img/hero-cidade.jpg"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover object-right"
+        fetchPriority="high"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-ink/20" />
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-ink to-transparent" />
+      <div className="relative mx-auto w-full max-w-7xl">
+        <p className="text-6xl font-extrabold leading-none tracking-tight text-white sm:text-8xl lg:text-9xl">DICOON</p>
+        <p className="mt-3 text-xl font-medium tracking-[0.6em] text-gold sm:text-3xl">INVEST</p>
+        <h1 className="mt-10 max-w-3xl text-3xl font-bold normal-case leading-tight tracking-normal text-white sm:text-5xl">
+          Proteção, Crédito e <span className="text-gold">Soluções Financeiras.</span>
+        </h1>
+        <p className="mt-6 max-w-xl text-lg text-white/70 sm:text-xl">
+          Soluções inteligentes para proteger o que importa e conquistar o que você sonha.
+        </p>
+        <div className="mt-10 flex flex-wrap gap-3">
+          <a
+            href={linkWhatsApp()}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full bg-gold px-8 py-4 text-base font-semibold text-ink hover:bg-gold-deep"
+          >
+            Fale com um especialista
+          </a>
+          <a
+            href="#produtos"
+            className="rounded-full border border-white/25 bg-black/30 px-8 py-4 text-base font-semibold text-white hover:border-gold hover:text-gold"
+          >
+            Conheça os produtos
+          </a>
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -129,14 +207,26 @@ function Contato() {
   }
 
   const campo =
-    'w-full rounded-lg border border-line bg-coal px-4 py-3 text-sm text-white placeholder:text-neutral-500 focus:border-gold focus:outline-none'
+    'w-full rounded-lg border border-line bg-ink px-4 py-3 text-sm text-white placeholder:text-neutral-500 focus:border-gold focus:outline-none'
 
   return (
-    <section id="contato" className="px-4 py-20">
-      <div className="mx-auto max-w-6xl">
-        <Titulo sobre="Fale com a gente" titulo="Contatos" />
-        <div className="grid gap-10 lg:grid-cols-2">
-          <div className="space-y-6">
+    <section id="contato" className="px-4 py-24">
+      <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_1.1fr]">
+        <div className="relative mx-auto w-full max-w-sm lg:max-w-none">
+          <img
+            src="/img/ricardo.jpg"
+            alt="Ricardo Schimuneck, Dicoon Invest"
+            loading="lazy"
+            className="aspect-[3/4] w-full rounded-2xl border border-line object-cover"
+          />
+          <div className="absolute inset-x-4 bottom-4 rounded-xl border border-gold/30 bg-ink/85 p-4 backdrop-blur">
+            <p className="font-bold text-white">Ricardo Schimuneck</p>
+            <p className="text-sm text-gold">Correspondente Bancário · Seguros · Imóveis</p>
+          </div>
+        </div>
+        <div>
+          <Titulo sobre="Vamos conversar?" titulo="Fale com um especialista e descubra a melhor solução para" destaque="você ou sua empresa." />
+          <div className="mb-8 grid gap-5 sm:grid-cols-3">
             <Info rotulo="WhatsApp">
               <a href={linkWhatsApp()} target="_blank" rel="noreferrer" className="hover:text-gold">
                 {empresa.telefone}
@@ -148,20 +238,20 @@ function Contato() {
               </a>
             </Info>
             <Info rotulo="Endereço">
-              {empresa.endereco}
-              <br />
-              {empresa.bairroCidade}
+              {empresa.endereco}, {empresa.bairroCidade}
             </Info>
           </div>
-          <form onSubmit={enviar} className="space-y-4 rounded-2xl border border-line bg-coal/60 p-6">
-            <input className={campo} placeholder="Seu nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
-            <select className={campo} value={interesse} onChange={(e) => setInteresse(e.target.value)}>
-              {produtos.map((p) => (
-                <option key={p.titulo}>{p.titulo}</option>
-              ))}
-            </select>
+          <form onSubmit={enviar} className="space-y-4 rounded-2xl border border-line bg-coal p-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <input className={campo} placeholder="Seu nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
+              <select className={campo} value={interesse} onChange={(e) => setInteresse(e.target.value)}>
+                {produtos.map((p) => (
+                  <option key={p.titulo}>{p.titulo}</option>
+                ))}
+              </select>
+            </div>
             <textarea
-              className={`${campo} min-h-28`}
+              className={`${campo} min-h-24`}
               placeholder="Conte rapidamente o que você precisa (opcional)"
               value={mensagem}
               onChange={(e) => setMensagem(e.target.value)}
@@ -181,7 +271,7 @@ function Info({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return (
     <div className="border-l-2 border-gold pl-4">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">{rotulo}</p>
-      <p className="mt-1 text-white">{children}</p>
+      <p className="mt-1 text-sm text-white">{children}</p>
     </div>
   )
 }
@@ -190,94 +280,72 @@ export function Site() {
   return (
     <>
       <Cabecalho />
+      <Hero />
 
-      <section
-        id="inicio"
-        className="relative flex min-h-screen items-center overflow-hidden px-4 pt-16"
-        style={{ background: 'radial-gradient(ellipse at top, rgba(212,175,55,0.15), transparent 60%)' }}
-      >
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-10 text-center">
-          <Logo grande />
-          <h1 className="max-w-3xl text-3xl font-extrabold leading-tight text-white sm:text-5xl">
-            Proteção, Crédito e <span className="text-gold">Soluções Financeiras</span>
-          </h1>
-          <p className="max-w-xl text-muted">
-            Correspondente bancário, financiamentos, consórcios, seguros, investimentos e imóveis em Canoas/RS.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <a
-              href={linkWhatsApp()}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full bg-gold px-7 py-3 text-sm font-bold uppercase tracking-wider text-ink hover:bg-gold-deep"
-            >
-              Fale com um especialista
-            </a>
-            <a
-              href="#produtos"
-              className="rounded-full border border-gold/50 px-7 py-3 text-sm font-bold uppercase tracking-wider text-gold hover:bg-gold/10"
-            >
-              Conheça os produtos
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section id="produtos" className="px-4 py-20">
-        <div className="mx-auto max-w-6xl">
-          <Titulo sobre="O que fazemos" titulo="Produtos e Serviços" />
+      <section id="produtos" className="px-4 py-24">
+        <div className="mx-auto max-w-7xl">
+          <Titulo sobre="O que fazemos" titulo="Como podemos" destaque="ajudar você hoje?" />
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {produtos.map((p) => (
-              <div key={p.titulo} className="rounded-2xl border border-line bg-coal p-6 transition hover:border-gold/60">
-                <div className="mb-4 h-1 w-10 bg-gold" />
-                <h3 className="text-base font-bold text-white">{p.titulo}</h3>
-                <p className="mt-2 text-sm text-muted">{p.texto}</p>
-                <a
-                  href={linkWhatsApp(`Olá! Quero saber mais sobre ${p.titulo}.`)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-block text-xs font-bold uppercase tracking-wider text-gold hover:underline"
-                >
-                  Quero saber mais →
-                </a>
-              </div>
+              <a
+                key={p.titulo}
+                href={linkWhatsApp(`Olá! Quero saber mais sobre ${p.titulo}.`)}
+                target="_blank"
+                rel="noreferrer"
+                className="group rounded-2xl border border-line bg-gradient-to-br from-coal to-ink p-7 transition hover:-translate-y-1 hover:border-gold/60"
+              >
+                <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-gold/40 text-gold">
+                  <Icone nome={p.icone} className="h-6 w-6" />
+                </span>
+                <h3 className="mt-5 text-lg font-bold normal-case tracking-normal text-white">{p.titulo}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{p.texto}</p>
+                <span className="mt-5 inline-block text-sm font-semibold text-gold">Saiba mais →</span>
+              </a>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="sobre" className="border-y border-line bg-coal px-4 py-20">
-        <div className="mx-auto max-w-4xl text-center">
-          <Titulo sobre="Quem somos" titulo="A Dicoon Invest" />
-          <p className="text-muted">
-            A Dicoon Invest Imóveis reúne em um só lugar crédito, seguros e imóveis. Nosso trabalho é entender o
-            momento de cada cliente e encontrar a solução certa, com atendimento próximo e transparente.
-          </p>
-          <div className="mt-12 grid gap-5 text-left sm:grid-cols-2 lg:grid-cols-4">
-            {diferenciais.map((d) => (
-              <div key={d.titulo} className="rounded-2xl border border-line bg-ink p-5">
-                <h3 className="text-sm font-bold text-gold">{d.titulo}</h3>
-                <p className="mt-2 text-sm text-muted">{d.texto}</p>
-              </div>
-            ))}
+      <section id="sobre" className="border-y border-line bg-coal px-4 py-24">
+        <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
+          <div>
+            <Titulo sobre="Quem somos" titulo="A Dicoon Invest" destaque="Imóveis" />
+            <p className="text-lg leading-relaxed text-muted">
+              A Dicoon Invest Imóveis reúne em um só lugar crédito, seguros e imóveis. Nosso trabalho é entender o
+              momento de cada cliente e encontrar a solução certa, com atendimento próximo e transparente.
+            </p>
+            <div className="mt-10 grid gap-5 sm:grid-cols-2">
+              {diferenciais.map((d) => (
+                <div key={d.titulo} className="rounded-2xl border border-line bg-ink p-5">
+                  <h3 className="text-sm font-bold text-gold">{d.titulo}</h3>
+                  <p className="mt-2 text-sm text-muted">{d.texto}</p>
+                </div>
+              ))}
+            </div>
           </div>
+          <img
+            src="/img/fachada.jpg"
+            alt="Fachada da Dicoon Invest Imóveis em Canoas/RS"
+            loading="lazy"
+            className="w-full rounded-2xl border border-line object-cover"
+          />
         </div>
       </section>
 
-      <section id="parceiros" className="px-4 py-20">
-        <div className="mx-auto max-w-4xl text-center">
-          <Titulo sobre="Rede de parceiros" titulo="Parceiros Financeiros" />
-          <p className="text-muted">
-            Trabalhamos com instituições financeiras e seguradoras parceiras para oferecer mais opções e as melhores
-            condições disponíveis para o seu perfil.
+      <section id="parceiros" className="px-4 py-24">
+        <div className="mx-auto max-w-7xl">
+          <Titulo sobre="Confiança que nos move" titulo="Parcerias que garantem as" destaque="melhores soluções." />
+          <p className="max-w-2xl text-lg text-muted">
+            Trabalhamos com diversas instituições financeiras e seguradoras parceiras. Assim comparamos as opções e
+            buscamos as melhores condições disponíveis para o seu perfil.
           </p>
         </div>
       </section>
 
       <Contato />
 
-      <footer className="border-t border-line px-4 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
+      <footer className="border-t border-line bg-coal px-4 py-12">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
           <Logo />
           <div className="text-xs text-neutral-500">
             <p>
