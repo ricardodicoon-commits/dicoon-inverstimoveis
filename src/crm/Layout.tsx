@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { Logo } from '../components/Logo'
 import { useAuth } from './auth'
+import { TrocarSenha } from './TrocarSenha'
 
 export function Layout() {
   const { perfil, ehAdmin, sair } = useAuth()
   const [aberto, setAberto] = useState(false)
+  const [trocandoSenha, setTrocandoSenha] = useState(false)
 
   const links = [
     { para: '/app', rotulo: 'Painel', fim: true },
@@ -36,9 +38,14 @@ export function Layout() {
     <div className="border-t border-line pt-4 text-xs">
       <p className="truncate font-semibold text-white">{perfil?.nome || perfil?.email}</p>
       <p className="truncate text-muted">{perfil?.role === 'admin' ? 'Administrador' : perfil?.role}</p>
-      <button onClick={sair} className="mt-3 font-semibold text-gold hover:underline">
-        Sair
-      </button>
+      <div className="mt-3 flex gap-4">
+        <button onClick={() => setTrocandoSenha(true)} className="font-semibold text-gold hover:underline">
+          Trocar senha
+        </button>
+        <button onClick={sair} className="font-semibold text-gold hover:underline">
+          Sair
+        </button>
+      </div>
     </div>
   )
 
@@ -79,6 +86,7 @@ export function Layout() {
       <main className="min-w-0 flex-1 p-4 sm:p-8">
         <Outlet />
       </main>
+      {trocandoSenha && <TrocarSenha aoFechar={() => setTrocandoSenha(false)} />}
     </div>
   )
 }

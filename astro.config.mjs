@@ -9,5 +9,6 @@ export default defineConfig({
   // Gera /credito.html e a Vercel serve como /credito (cleanUrls no vercel.json).
   build: { format: 'file' },
   integrations: [react(), sitemap({ filter: (pagina) => !pagina.includes('/app') && !pagina.includes('/404') })],
-  vite: { plugins: [tailwindcss()] },
+  // VITE_: as chaves públicas do Supabase usadas pelo CRM (o Astro só expõe PUBLIC_ por padrão).
+  vite: { plugins: [tailwindcss()], envPrefix: ['PUBLIC_', 'VITE_'] },
 })

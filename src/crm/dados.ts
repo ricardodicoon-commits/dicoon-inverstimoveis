@@ -29,6 +29,11 @@ export function erroAmigavel(e: unknown) {
   const msg = e instanceof Error ? e.message : String(e)
   if (/row-level security|permission denied/i.test(msg)) return 'Você não tem permissão para esta ação.'
   if (/Failed to fetch|NetworkError/i.test(msg)) return 'Sem conexão com o servidor. Tente de novo.'
+  if (/Invalid login credentials/i.test(msg)) return 'E-mail ou senha incorretos.'
+  if (/Email not confirmed/i.test(msg)) return 'Acesso ainda não liberado. Fale com o administrador.'
+  if (/rate limit|too many/i.test(msg)) return 'Muitas tentativas. Aguarde alguns minutos e tente de novo.'
+  if (/should be different/i.test(msg)) return 'A nova senha precisa ser diferente da atual.'
+  if (/weak|at least/i.test(msg)) return 'Senha fraca. Use pelo menos 8 caracteres, misturando letras e números.'
   return msg
 }
 

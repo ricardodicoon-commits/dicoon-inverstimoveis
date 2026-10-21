@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Logo } from '../components/Logo'
 import { linkWhatsApp } from '../config'
 import { supabaseConfigurado } from '../lib/supabase'
@@ -11,6 +11,7 @@ import { Entrada } from './paginas/Entrada'
 import { Equipe } from './paginas/Equipe'
 import { Negociacoes } from './paginas/Negociacoes'
 import { Painel } from './paginas/Painel'
+import { TrocarSenha } from './TrocarSenha'
 import { Carregando } from './ui'
 
 const clienteDados = new QueryClient({
@@ -48,8 +49,14 @@ function EmManutencao() {
 
 function Portao() {
   const { sessao, perfil, ehAdmin } = useAuth()
+  const { search } = useLocation()
+  const navegar = useNavigate()
   if (sessao === undefined || (sessao && perfil === undefined)) return <Carregando />
   if (!sessao) return <Entrada />
+  // Link de "Esqueci minha senha": o Supabase já abriu a sessão, falta a nova senha.
+  if (new URLSearchParams(search).has('nova-senha')) {
+    return <TrocarSenha titulo="Criar senha" aoFechar={() => navegar('/app', { replace: true })} />
+  }
   if (!perfil || !perfil.aprovado) return <Aguardando desativado={perfil ? !perfil.ativo : false} />
   if (!perfil.ativo) return <Aguardando desativado />
 

@@ -4,7 +4,7 @@
     {
       "name": "site",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "4321"],
+      "runtimeArgs": ["run", "dev", "--", "--port", "4321", "--host", "127.0.0.1"],
       "port": 4321
     }
   ]
