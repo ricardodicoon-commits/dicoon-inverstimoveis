@@ -1,12 +1,13 @@
 ---
-// Aviso de cookies (LGPD) + Google Analytics 4 e Pixel da Meta.
+// Aviso de cookies (LGPD) + Google Tag Manager (que carrega o Analytics e o Pixel da Meta).
 // Nada é carregado antes de a pessoa clicar em "Aceitar"; a escolha fica no
 // navegador dela e pode ser revista pelo link "Preferências de cookies" do rodapé.
+// O site só avisa os eventos ao Tag Manager (dataLayer); o que cada ferramenta
+// recebe é configurado lá (gtm/container-dicoon-invest.json).
 import { rastreamento } from '../../config'
 
-const ga = rastreamento.googleAnalytics
-const pixel = rastreamento.pixelMeta
-const ativo = Boolean(ga || pixel)
+const gtm = rastreamento.tagManager
+const ativo = Boolean(gtm)
 ---
 
 {
@@ -39,7 +40,7 @@ const ativo = Boolean(ga || pixel)
   )
 }
 
-<script is:inline define:vars={{ ga, pixel, ativo }}>
+<script is:inline define:vars={{ gtm, ativo }}>
   ;(() => {
     const CHAVE = 'dicoon-consentimento'
     let ligado = false
@@ -59,52 +60,39 @@ const ativo = Boolean(ga || pixel)
     function ligar() {
       if (ligado || !ativo) return
       ligado = true
-      if (ga) {
-        const s = document.createElement('script')
-        s.async = true
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + ga
-        document.head.appendChild(s)
-        window.dataLayer = window.dataLayer || []
-        window.gtag = function () {
-          window.dataLayer.push(arguments)
-        }
-        window.gtag('js', new Date())
-        window.gtag('config', ga)
-      }
-      if (pixel) {
-        !(function (f, b, e, v, n, t, s) {
-          if (f.fbq) return
-          n = f.fbq = function () {
-            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments)
-          }
-          if (!f._fbq) f._fbq = n
-          n.push = n
-          n.loaded = !0
-          n.version = '2.0'
-          n.queue = []
-          t = b.createElement(e)
-          t.async = !0
-          t.src = v
-          s = b.getElementsByTagName(e)[0]
-          s.parentNode.insertBefore(t, s)
-        })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js')
-        window.fbq('init', pixel)
-        window.fbq('track', 'PageView')
-      }
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })
+      const s = document.createElement('script')
+      s.async = true
+      s.src = 'https://www.googletagmanager.com/gtm.js?id=' + gtm
+      document.head.appendChild(s)
     }
 
-    // Eventos do site. Nunca enviar dados pessoais (nome, telefone, e-mail, valores digitados).
-    const eventoMeta = { clique_whatsapp: 'Contact', pedido_enviado: 'Lead' }
+    // Eventos do site para o Tag Manager. Nunca enviar dados pessoais
+    // (nome, telefone, e-mail, valores digitados).
     window.dicoonEvento = (nome, dados = {}) => {
       if (!ligado) return
-      if (window.gtag) window.gtag('event', nome, dados)
-      if (window.fbq) eventoMeta[nome] ? window.fbq('track', eventoMeta[nome], dados) : window.fbq('trackCustom', nome, dados)
+      window.dataLayer.push({ event: nome, pagina: location.pathname, ...dados })
     }
+
+    // Cliques que saem do site, por canal.
+    const canais = [
+      ['clique_whatsapp', /(wa\.me|whatsapp\.com)/i],
+      ['clique_messenger', /(m\.me|messenger\.com)/i],
+      ['clique_instagram', /instagram\.com/i],
+      ['clique_facebook', /(facebook\.com|fb\.com)/i],
+      ['clique_tiktok', /tiktok\.com/i],
+      ['clique_email', /^mailto:/i],
+      ['clique_telefone', /^tel:/i],
+    ]
     document.addEventListener(
       'click',
       (e) => {
-        const link = e.target instanceof Element && e.target.closest('a[href*="wa.me"]')
-        if (link) window.dicoonEvento('clique_whatsapp', { pagina: location.pathname })
+        const link = e.target instanceof Element && e.target.closest('a[href]')
+        if (!link) return
+        const href = link.getAttribute('href') || ''
+        const canal = canais.find(([, padrao]) => padrao.test(href))
+        if (canal) window.dicoonEvento(canal[0])
       },
       true,
     )

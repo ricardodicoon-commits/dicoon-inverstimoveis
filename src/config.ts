@@ -14,11 +14,19 @@ export const empresa = {
   site: 'https://www.dicooninvest.com.br',
 }
 
-// Códigos públicos de medição (aparecem no site; não são senhas).
-// Vazios = nada é carregado e o aviso de cookies não aparece.
+// Perfis nas redes. Vazio = o ícone não aparece no rodapé.
+export const redes = {
+  instagram: '', // https://www.instagram.com/...
+  facebook: '', // https://www.facebook.com/...
+  messenger: '', // https://m.me/...
+  tiktok: '', // https://www.tiktok.com/@...
+}
+
+// Medição. O Google Tag Manager carrega o Analytics (G-50TXLG4V23) e o Pixel da
+// Meta (1403847860332992); a configuração fica em gtm/container-dicoon-invest.json.
+// Vazio = nada é carregado e o aviso de cookies não aparece.
 export const rastreamento = {
-  googleAnalytics: 'G-50TXLG4V23', // propriedade "Dicoon Invest - Site", fluxo "Site Dicoon Invest"
-  pixelMeta: '1403847860332992', // "Pixel de Paulo Ricardo Schimumeck", conta de anúncios 2368456383335072
+  tagManager: 'GTM-MGMRFZCG', // conta "Dicoon Invest", contêiner "www.dicooninvest.com.br"
 }
 
 export function linkWhatsApp(mensagem = 'Olá, quero conhecer as soluções da Dicoon Invest.') {

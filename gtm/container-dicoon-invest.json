@@ -1,0 +1,356 @@
+{
+  "exportFormatVersion": 2,
+  "exportTime": "2026-10-21 15:00:00",
+  "containerVersion": {
+    "name": "Dicoon Invest - Analytics, Pixel e eventos",
+    "description": "GA4 G-50TXLG4V23 e Pixel da Meta 1403847860332992. O site carrega o GTM só após o aceite de cookies e envia: clique_whatsapp, clique_messenger, clique_instagram, clique_facebook, clique_email, clique_telefone, simulacao, pedido_enviado.",
+    "tag": [
+      {
+        "accountId": "6384074921",
+        "containerId": "268000790",
+        "name": "Google - Tag do Analytics (G-50TXLG4V23)",
+        "type": "googtag",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "tagId",
+            "value": "G-50TXLG4V23"
+          }
+        ],
+        "firingTriggerId": [
+          "2147479573"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "tagId": "1",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6384074921",
+        "containerId": "268000790",
+        "name": "Google - Eventos do site",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-50TXLG4V23"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "pagina"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DL - pagina}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "produto"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DL - produto}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "servico"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DL - servico}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "canal"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DL - canal}}"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "firingTriggerId": [
+          "101"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "tagId": "2",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6384074921",
+        "containerId": "268000790",
+        "name": "Meta - Pixel base (1403847860332992)",
+        "type": "html",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "html",
+            "value": "<script>\n!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');\nfbq('init','1403847860332992');\nfbq('track','PageView');\n</script>"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "firingTriggerId": [
+          "2147479573"
+        ],
+        "tagFiringOption": "ONCE_PER_LOAD",
+        "tagId": "3",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6384074921",
+        "containerId": "268000790",
+        "name": "Meta - Eventos do site",
+        "type": "html",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "html",
+            "value": "<script>\n(function(){\n  if (!window.fbq) return;\n  var ev = {{Event}};\n  var dados = { pagina: {{DL - pagina}} };\n  if (ev.indexOf('clique_') === 0) {\n    dados.canal = ev.replace('clique_', '');\n    fbq('track', 'Contact', dados);\n  } else if (ev === 'pedido_enviado') {\n    dados.servico = {{DL - servico}};\n    dados.canal = {{DL - canal}};\n    fbq('track', 'Lead', dados);\n  } else if (ev === 'simulacao') {\n    dados.produto = {{DL - produto}};\n    fbq('trackCustom', 'simulacao', dados);\n  }\n})();\n</script>"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "firingTriggerId": [
+          "101"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "setupTag": [
+          {
+            "tagName": "Meta - Pixel base (1403847860332992)",
+            "stopOnSetupFailure": false
+          }
+        ],
+        "tagId": "4",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      }
+    ],
+    "trigger": [
+      {
+        "accountId": "6384074921",
+        "containerId": "268000790",
+        "triggerId": "101",
+        "name": "Eventos do site (cliques, simulação, pedido)",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(clique_[a-z]+|simulacao|pedido_enviado)$"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "variable": [
+      {
+        "accountId": "6384074921",
+        "containerId": "268000790",
+        "variableId": "201",
+        "name": "DL - pagina",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "pagina"
+          }
+        ]
+      },
+      {
+        "accountId": "6384074921",
+        "containerId": "268000790",
+        "variableId": "202",
+        "name": "DL - produto",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "produto"
+          }
+        ]
+      },
+      {
+        "accountId": "6384074921",
+        "containerId": "268000790",
+        "variableId": "203",
+        "name": "DL - servico",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "servico"
+          }
+        ]
+      },
+      {
+        "accountId": "6384074921",
+        "containerId": "268000790",
+        "variableId": "204",
+        "name": "DL - canal",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "canal"
+          }
+        ]
+      }
+    ],
+    "builtInVariable": [
+      {
+        "accountId": "6384074921",
+        "containerId": "268000790",
+        "type": "EVENT",
+        "name": "Event"
+      },
+      {
+        "accountId": "6384074921",
+        "containerId": "268000790",
+        "type": "PAGE_URL",
+        "name": "Page URL"
+      },
+      {
+        "accountId": "6384074921",
+        "containerId": "268000790",
+        "type": "PAGE_PATH",
+        "name": "Page Path"
+      }
+    ],
+    "path": "accounts/6384074921/containers/268000790/versions/0",
+    "accountId": "6384074921",
+    "containerId": "268000790",
+    "containerVersionId": "0",
+    "container": {
+      "path": "accounts/6384074921/containers/268000790",
+      "accountId": "6384074921",
+      "containerId": "268000790",
+      "name": "www.dicooninvest.com.br",
+      "publicId": "GTM-MGMRFZCG",
+      "usageContext": [
+        "WEB"
+      ]
+    }
+  }
+}
