@@ -1,8 +1,16 @@
+import { lazy, Suspense } from 'react'
 import { Site } from './pages/Site'
-import { AreaCliente } from './pages/AreaCliente'
 
-// O CRM ficará em /app; até ele ser reconstruído, mostra um aviso.
+// O CRM só é baixado quando alguém abre /app, para o site continuar leve.
+const CrmApp = lazy(() => import('./crm/CrmApp'))
+
 export default function App() {
-  const ehApp = window.location.pathname.startsWith('/app')
-  return ehApp ? <AreaCliente /> : <Site />
+  if (window.location.pathname.startsWith('/app')) {
+    return (
+      <Suspense fallback={null}>
+        <CrmApp />
+      </Suspense>
+    )
+  }
+  return <Site />
 }
