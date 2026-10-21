@@ -50,3 +50,6 @@ backup/
 
 # astro
 .astro/
+
+# prévias de tela
+/previas/
