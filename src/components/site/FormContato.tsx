@@ -7,6 +7,7 @@ const servicos = [
   'Financiamento imobiliário',
   'Financiamento veicular',
   'Crédito consignado',
+  'Home Equity',
   'Crédito empresarial',
   'Consórcios',
   'Seguros',

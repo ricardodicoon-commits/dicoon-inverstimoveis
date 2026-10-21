@@ -81,7 +81,7 @@ const duvidas = [
     <div class="container-site">
       <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue">Nossas soluções</p>
       <h2 class="mt-2 max-w-2xl text-3xl font-extrabold text-navy sm:text-4xl">Crédito, consórcio e proteção em um só lugar</h2>
-      <div class="mt-10"><CartoesServico itens={servicos} /></div>
+      <div class="mt-10"><CartoesServico itens={servicos.filter((s) => s.slug !== 'home-equity')} /></div>
     </div>
   </section>
 

@@ -4,6 +4,7 @@ import Breadcrumb from '../components/site/Breadcrumb.astro'
 import CartoesServico from '../components/site/CartoesServico.astro'
 import Icone from '../components/site/Icone.astro'
 import SecaoContato from '../components/site/SecaoContato.astro'
+import SimuladorHomeEquity from '../components/site/SimuladorHomeEquity'
 import { servicos, type Servico } from '../data/servicos'
 import { linkWhatsApp } from '../config'
 
@@ -13,7 +14,10 @@ interface Props {
 const { servico: s } = Astro.props
 const ehCredito = s.url.startsWith('/credito/')
 const trilha = ehCredito ? [{ nome: 'Crédito', url: '/credito' }, { nome: s.h1, url: s.url }] : [{ nome: s.h1, url: s.url }]
-const relacionados = servicos.filter((x) => x.slug !== s.slug && x.publico.some((p) => s.publico.includes(p))).slice(0, 3)
+const temSimulador = s.slug === 'home-equity'
+// "Home Equity" é nome próprio; os demais entram em minúsculas no meio da frase.
+const nomeNaFrase = s.slug === 'home-equity' ? s.nome : s.nome.toLowerCase()
+const relacionados =servicos.filter((x) => x.slug !== s.slug && x.publico.some((p) => s.publico.includes(p))).slice(0, 3)
 ---
 
 <Base titulo={s.seoTitulo} descricao={s.seoDescricao}>
@@ -28,7 +32,9 @@ const relacionados = servicos.filter((x) => x.slug !== s.slug && x.publico.some(
           <h1 class="text-4xl font-extrabold leading-tight sm:text-5xl">{s.h1}</h1>
           <p class="mt-5 max-w-2xl text-lg text-white/80">{s.intro}</p>
           <div class="mt-8 flex flex-wrap gap-3">
-            <a href="#contato" class="rounded-full bg-gold px-7 py-3.5 font-bold text-navy hover:bg-gold-dark">Quero uma simulação</a>
+            <a href={temSimulador ? '#simulador' : '#contato'} class="rounded-full bg-gold px-7 py-3.5 font-bold text-navy hover:bg-gold-dark">
+              Quero uma simulação
+            </a>
             <a
               href={linkWhatsApp(`Olá, quero saber mais sobre ${s.nome} na Dicoon Invest.`)}
               target="_blank"
@@ -42,6 +48,21 @@ const relacionados = servicos.filter((x) => x.slug !== s.slug && x.publico.some(
       </div>
     </div>
   </section>
+
+  {
+    temSimulador && (
+      <section id="simulador" class="border-b border-border bg-white py-16 sm:py-20">
+        <div class="container-site">
+          <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue">Simulador</p>
+          <h2 class="mt-2 text-2xl font-extrabold text-navy sm:text-3xl">Simule o seu {s.nome}</h2>
+          <p class="mt-3 max-w-2xl text-muted">Informe o valor do imóvel, quanto você precisa e o prazo. Você vê na hora uma estimativa da parcela.</p>
+          <div class="mt-8">
+            <SimuladorHomeEquity client:visible />
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   <section class="py-16 sm:py-20">
     <div class="container-site grid gap-10 lg:grid-cols-2">
@@ -86,7 +107,7 @@ const relacionados = servicos.filter((x) => x.slug !== s.slug && x.publico.some(
 
   <section class="py-16 sm:py-20">
     <div class="container-site max-w-3xl">
-      <h2 class="text-2xl font-extrabold text-navy sm:text-3xl">Dúvidas sobre {s.nome.toLowerCase()}</h2>
+      <h2 class="text-2xl font-extrabold text-navy sm:text-3xl">Dúvidas sobre {nomeNaFrase}</h2>
       <div class="mt-8 space-y-3">
         {
           s.perguntas.map((d) => (
@@ -110,5 +131,5 @@ const relacionados = servicos.filter((x) => x.slug !== s.slug && x.publico.some(
     </div>
   </section>
 
-  <SecaoContato servicoInicial={s.nome} titulo={`Vamos conversar sobre ${s.nome.toLowerCase()}?`} />
+  <SecaoContato servicoInicial={s.nome} titulo={`Vamos conversar sobre ${nomeNaFrase}?`} />
 </Base>

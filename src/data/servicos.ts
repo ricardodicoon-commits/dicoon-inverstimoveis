@@ -144,6 +144,69 @@ export const servicos: Servico[] = [
     publico: ['voce'],
   },
   {
+    slug: 'home-equity',
+    url: '/credito/home-equity',
+    icone: 'chave',
+    nome: 'Home Equity',
+    resumo: 'Empréstimo com garantia de imóvel: valores mais altos e prazos mais longos usando o seu imóvel como garantia.',
+    seoTitulo: 'Home Equity: empréstimo com garantia de imóvel | Dicoon Invest',
+    seoDescricao:
+      'Home Equity em Canoas/RS: simule o empréstimo com garantia de imóvel, entenda custos, prazos e alienação fiduciária e compare opções nas instituições parceiras.',
+    h1: 'Home Equity: empréstimo com garantia de imóvel',
+    intro:
+      'Use o seu imóvel como garantia para conseguir um crédito de valor mais alto, com prazos mais longos e parcelas que cabem no orçamento. Você continua morando ou usando o imóvel normalmente.',
+    paraQuem: [
+      'Quem tem imóvel próprio e precisa de um valor mais alto',
+      'Quem quer trocar dívidas caras por parcelas mais longas',
+      'Quem vai construir, reformar ou investir no próprio negócio',
+      'Quem já tem um empréstimo com garantia e quer comparar condições',
+    ],
+    passos: [
+      { titulo: 'Simulação e conversa', texto: 'Simulamos valor, prazo e parcela e entendemos para que você vai usar o dinheiro.' },
+      { titulo: 'Análise de crédito', texto: 'Organizamos seus documentos e os do imóvel e acompanhamos a análise da instituição.' },
+      { titulo: 'Avaliação do imóvel', texto: 'A instituição agenda a vistoria para definir o valor de avaliação do imóvel.' },
+      { titulo: 'Contrato e liberação', texto: 'Após a assinatura e o registro da garantia em cartório, o valor é liberado na sua conta.' },
+    ],
+    saiba: [
+      'No Home Equity o imóvel fica em alienação fiduciária: a garantia é registrada na matrícula, mas o imóvel continua sendo seu e você segue morando ou usando normalmente. Com a quitação, a garantia é retirada.',
+      'O valor liberado é uma parte do valor de avaliação do imóvel. O limite exato, o prazo e a taxa dependem da instituição e da análise do seu perfil.',
+      'As taxas podem ser pré-fixadas (iguais durante todo o contrato) ou pós-fixadas (com uma parte corrigida por um índice de inflação). Mostramos as duas opções quando disponíveis.',
+      'Além dos juros, podem incidir IOF, seguros obrigatórios, tarifa de avaliação e custos de registro em cartório. Tudo aparece no custo efetivo total antes da assinatura.',
+      'Atenção: por ser uma garantia, o atraso prolongado das parcelas pode levar à perda do imóvel. Por isso ajudamos você a escolher uma parcela segura para o seu orçamento.',
+    ],
+    perguntas: [
+      {
+        p: 'Quanto posso pegar no Home Equity?',
+        r: 'Uma parte do valor de avaliação do imóvel. Muitas instituições trabalham com até cerca de 60% desse valor, mas o limite exato depende da instituição, do tipo de imóvel e da sua capacidade de pagamento.',
+      },
+      {
+        p: 'Posso continuar morando no imóvel?',
+        r: 'Sim. O imóvel continua sendo seu durante todo o contrato. A garantia fica registrada na matrícula e é retirada quando o empréstimo é quitado.',
+      },
+      {
+        p: 'O imóvel precisa estar quitado?',
+        r: 'Depende da instituição. Algumas aceitam imóvel com saldo de financiamento baixo, outras exigem o imóvel quitado. Verificamos isso no seu caso.',
+      },
+      {
+        p: 'Posso vender o imóvel que está em garantia?',
+        r: 'Em geral é preciso quitar o empréstimo antes ou na própria venda, com o acordo da instituição. Orientamos você se esse momento chegar.',
+      },
+      {
+        p: 'Qual a diferença entre taxa pré-fixada e pós-fixada?',
+        r: 'Na pré-fixada a taxa é definida na assinatura e não muda. Na pós-fixada, uma parte é corrigida por um índice de inflação, então a parcela pode variar ao longo do tempo.',
+      },
+      {
+        p: 'Existe renda mínima?',
+        r: 'Cada instituição tem os próprios critérios. Na análise avaliamos se a parcela cabe na sua renda com segurança.',
+      },
+      {
+        p: 'Já tenho um empréstimo com garantia. Posso levar para outra instituição?',
+        r: 'A portabilidade pode ser possível. Comparamos as condições atuais com as de outras instituições para ver se vale a pena.',
+      },
+    ],
+    publico: ['voce'],
+  },
+  {
     slug: 'empresarial',
     url: '/credito/empresarial',
     icone: 'predio',
