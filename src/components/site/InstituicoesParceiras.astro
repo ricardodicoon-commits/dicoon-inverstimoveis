@@ -245,10 +245,11 @@ const seguradoras = parceiros.filter((p) => p.tipo === 'seguradora')
     faixa.addEventListener('pointercancel', soltar)
 
     // Só anima enquanto a faixa está visível na tela.
-    new IntersectionObserver(([entrada]) => {
+    // Pode chegar mais de uma mudança no mesmo lote: vale a mais recente.
+    new IntersectionObserver((entradas) => {
       cancelAnimationFrame(quadro)
       ultimo = 0
-      if (entrada.isIntersecting) quadro = requestAnimationFrame(animar)
+      if (entradas[entradas.length - 1].isIntersecting) quadro = requestAnimationFrame(animar)
     }).observe(faixa)
 
     new ResizeObserver(() => {
