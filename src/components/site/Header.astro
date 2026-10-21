@@ -1,0 +1,73 @@
+---
+import { Image } from 'astro:assets'
+import logo from '../../assets/logo-dicoon.png'
+import { linkWhatsApp } from '../../config'
+
+// Na Fase 2 estes links passam a apontar para as páginas próprias.
+const menu = [
+  { href: '/#solucoes', rotulo: 'Soluções' },
+  { href: '/#para-voce', rotulo: 'Para você' },
+  { href: '/#empresas', rotulo: 'Para empresas' },
+  { href: '/#sobre', rotulo: 'Sobre' },
+  { href: '/#contato', rotulo: 'Contato' },
+]
+---
+
+<header class="sticky top-0 z-40 border-b border-white/10 bg-navy/95 backdrop-blur">
+  <div class="container-site flex h-18 items-center justify-between gap-4">
+    <a href="/" class="shrink-0" aria-label="Dicoon Invest - página inicial">
+      <Image src={logo} alt="Dicoon Invest" width={104} height={70} class="h-12 w-auto" loading="eager" />
+    </a>
+
+    <nav class="hidden items-center gap-7 lg:flex" aria-label="Principal">
+      {
+        menu.map((m) => (
+          <a href={m.href} class="text-sm font-medium text-white/85 hover:text-gold">
+            {m.rotulo}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="hidden items-center gap-3 lg:flex">
+      <a href="/app" class="rounded-full border border-white/25 px-4 py-2 text-sm font-semibold text-white hover:border-gold hover:text-gold">
+        Área do Cliente
+      </a>
+      <a
+        href={linkWhatsApp()}
+        target="_blank"
+        rel="noopener"
+        class="rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-navy hover:bg-gold-dark"
+      >
+        Fale no WhatsApp
+      </a>
+    </div>
+
+    <details class="group lg:hidden">
+      <summary
+        class="flex cursor-pointer list-none items-center rounded-lg border border-white/25 p-2 text-gold [&::-webkit-details-marker]:hidden"
+        aria-label="Abrir menu"
+      >
+        <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" class="group-open:hidden"></path>
+          <path d="M6 6l12 12M18 6L6 18" class="hidden group-open:block"></path>
+        </svg>
+      </summary>
+      <nav class="absolute inset-x-0 top-full border-b border-white/10 bg-navy px-4 pb-6 pt-2" aria-label="Menu móvel">
+        {
+          menu.map((m) => (
+            <a href={m.href} class="block border-b border-white/10 py-3.5 font-medium text-white">
+              {m.rotulo}
+            </a>
+          ))
+        }
+        <div class="mt-5 grid gap-3 sm:grid-cols-2">
+          <a href="/app" class="rounded-full border border-white/25 px-4 py-3 text-center font-semibold text-white">Área do Cliente</a>
+          <a href={linkWhatsApp()} target="_blank" rel="noopener" class="rounded-full bg-gold px-4 py-3 text-center font-bold text-navy">
+            Fale no WhatsApp
+          </a>
+        </div>
+      </nav>
+    </details>
+  </div>
+</header>

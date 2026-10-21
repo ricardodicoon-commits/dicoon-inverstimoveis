@@ -1,13 +1,14 @@
 @import 'tailwindcss';
 
+/* CRM: mesma estrutura de antes, só com as cores do novo design system. */
 @theme {
-  --color-ink: #0a0a0a;
-  --color-coal: #141414;
-  --color-line: #2a2a2a;
-  --color-gold: #d4af37;
-  --color-gold-deep: #c9a227;
-  --color-muted: #a3a3a3;
-  --font-sans: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #0b1a2b;
+  --color-coal: #10243a;
+  --color-line: #24405e;
+  --color-gold: #c8a45d;
+  --color-gold-deep: #b08d47;
+  --color-muted: #a9b6c6;
+  --font-sans: 'Inter', Arial, sans-serif;
 }
 
 @layer base {

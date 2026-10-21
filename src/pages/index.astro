@@ -1,0 +1,244 @@
+---
+import { Picture } from 'astro:assets'
+import Base from '../layouts/Base.astro'
+import Icone from '../components/site/Icone.astro'
+import FormContato from '../components/site/FormContato'
+import heroImg from '../assets/hero-cidade.jpg'
+import familiaImg from '../assets/familia.jpg'
+import { empresa, linkWhatsApp } from '../config'
+
+// Textos em rascunho: validar com o Ricardo o que é efetivamente oferecido.
+const servicos = [
+  { icone: 'casa', titulo: 'Financiamento imobiliário', texto: 'Crédito bancário para comprar seu imóvel, com simulação e acompanhamento da proposta até a assinatura.' },
+  { icone: 'carro', titulo: 'Financiamento veicular', texto: 'Crédito para comprar seu carro, novo ou usado, comparando opções nas instituições parceiras.' },
+  { icone: 'carteira', titulo: 'Crédito consignado', texto: 'Empréstimo com desconto das parcelas direto na folha ou no benefício, para quem tem acesso à modalidade.' },
+  { icone: 'predio', titulo: 'Crédito empresarial', texto: 'Soluções de crédito para o seu negócio investir, se organizar e crescer.' },
+  { icone: 'calendario', titulo: 'Consórcios', texto: 'Planejamento para conquistar imóvel ou veículo com carta de crédito e parcelas que cabem no seu orçamento.' },
+  { icone: 'escudo', titulo: 'Seguros', texto: 'Proteção para você, sua família, seu veículo e o seu patrimônio.' },
+]
+
+const beneficios = [
+  { icone: 'conversa', titulo: 'Atendimento consultivo', texto: 'Entendemos o seu momento antes de indicar qualquer solução.' },
+  { icone: 'lupa', titulo: 'Clareza nas condições', texto: 'Tudo explicado com transparência antes de qualquer assinatura.' },
+  { icone: 'check', titulo: 'Acompanhamento da proposta', texto: 'Seguimos com você em cada etapa, até a conclusão.' },
+  { icone: 'cadeado', titulo: 'Segurança no tratamento dos dados', texto: 'Pedimos só as informações necessárias para o seu atendimento.' },
+]
+
+const duvidas = [
+  {
+    p: 'A Dicoon Invest é um banco?',
+    r: 'Não. A Dicoon Invest atua como correspondente bancário e intermediadora: orientamos você, levamos a sua proposta às instituições parceiras e acompanhamos todo o processo. A análise e a aprovação do crédito são feitas pela instituição financeira.',
+  },
+  {
+    p: 'Quais documentos vou precisar?',
+    r: 'Depende do produto e da instituição. No primeiro atendimento passamos a lista exata para o seu caso, para você não perder tempo.',
+  },
+  {
+    p: 'Em quanto tempo sai a resposta?',
+    r: 'O prazo varia conforme o produto e a análise de cada instituição. Durante o processo você recebe atualizações sobre cada etapa.',
+  },
+  {
+    p: 'Como funciona um consórcio?',
+    r: 'Um grupo de pessoas paga parcelas mensais e, todo mês, participantes são contemplados por sorteio ou lance para usar a carta de crédito na compra do bem. É uma forma de planejar a compra a médio e longo prazo.',
+  },
+  {
+    p: 'Como meus dados são usados?',
+    r: 'Usamos seus dados apenas para responder ao seu pedido e conduzir o atendimento que você solicitou.',
+  },
+]
+---
+
+<Base
+  titulo="Dicoon Invest | Crédito, consórcios e seguros em Canoas/RS"
+  descricao="Financiamento imobiliário e veicular, crédito consignado e empresarial, consórcios e seguros com atendimento personalizado em Canoas/RS. Fale com um especialista."
+>
+  <!-- Hero -->
+  <section class="relative overflow-hidden bg-navy text-white">
+    <Picture
+      src={heroImg}
+      formats={['avif', 'webp']}
+      alt=""
+      widths={[640, 1019]}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+      class="absolute inset-0 h-full w-full object-cover object-right opacity-60"
+    />
+    <div class="absolute inset-0 bg-gradient-to-r from-navy via-navy/90 to-navy/40"></div>
+    <div class="container-site relative py-24 sm:py-32 lg:py-40">
+      <p class="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-gold">
+        <span class="h-px w-8 bg-gold"></span>Correspondente bancário em Canoas/RS
+      </p>
+      <h1 class="mt-6 max-w-3xl text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
+        Soluções financeiras para <span class="text-gold">realizar seus planos.</span>
+      </h1>
+      <p class="mt-6 max-w-xl text-lg text-white/80">Crédito, consórcios e seguros com atendimento personalizado.</p>
+      <div class="mt-10 flex flex-wrap gap-3">
+        <a href="#solucoes" class="rounded-full bg-gold px-7 py-3.5 font-bold text-navy hover:bg-gold-dark">Conheça as soluções</a>
+        <a href={linkWhatsApp()} target="_blank" rel="noopener" class="rounded-full border border-white/40 px-7 py-3.5 font-semibold text-white hover:border-gold hover:text-gold">
+          Fale com um especialista
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Serviços -->
+  <section id="solucoes" class="py-16 sm:py-22">
+    <div class="container-site">
+      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue">Nossas soluções</p>
+      <h2 class="mt-2 max-w-2xl text-3xl font-extrabold text-navy sm:text-4xl">Crédito, consórcio e proteção em um só lugar</h2>
+      <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          servicos.map((s) => (
+            <article class="group flex flex-col rounded-card bg-navy p-7 text-white shadow-sm transition hover:-translate-y-1 hover:bg-blue">
+              <span class="flex h-12 w-12 items-center justify-center rounded-xl border border-gold/50 text-gold">
+                <Icone nome={s.icone} />
+              </span>
+              <h3 class="mt-5 text-lg font-bold">{s.titulo}</h3>
+              <p class="mt-2 flex-1 text-sm leading-relaxed text-white/75">{s.texto}</p>
+              <a
+                href={linkWhatsApp(`Olá, quero saber mais sobre ${s.titulo} na Dicoon Invest.`)}
+                target="_blank"
+                rel="noopener"
+                class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-gold"
+              >
+                Quero saber mais <Icone nome="seta" class="h-4 w-4" /><span class="sr-only"> sobre {s.titulo}</span>
+              </a>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Públicos -->
+  <section class="pb-16 sm:pb-22">
+    <div class="container-site grid gap-5 lg:grid-cols-2">
+      <article id="para-voce" class="relative min-h-96 overflow-hidden rounded-card bg-navy text-white">
+        <Picture src={familiaImg} formats={['avif', 'webp']} alt="Família sorrindo junta em casa" widths={[600, 1200]} sizes="(min-width: 1024px) 600px, 100vw" class="absolute inset-0 h-full w-full object-cover" />
+        <div class="absolute inset-0 bg-gradient-to-t from-navy via-navy/75 to-navy/10"></div>
+        <div class="relative flex h-full flex-col justify-end p-8">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Para você</p>
+          <h2 class="mt-2 text-2xl font-extrabold sm:text-3xl">Casa, carro e tranquilidade para a sua família</h2>
+          <p class="mt-3 text-white/80">Financiamento imobiliário e veicular, consignado, consórcios e seguros.</p>
+          <a href={linkWhatsApp('Olá, quero conhecer as soluções da Dicoon Invest para mim.')} target="_blank" rel="noopener" class="mt-6 w-fit rounded-full bg-gold px-6 py-3 font-bold text-navy hover:bg-gold-dark">
+            Soluções para você
+          </a>
+        </div>
+      </article>
+      <article id="empresas" class="flex min-h-96 flex-col justify-end rounded-card bg-gradient-to-br from-blue to-navy p-8 text-white">
+        <span class="flex h-14 w-14 items-center justify-center rounded-xl border border-gold/50 text-gold"><Icone nome="maleta" class="h-7 w-7" /></span>
+        <p class="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-gold">Para empresas</p>
+        <h2 class="mt-2 text-2xl font-extrabold sm:text-3xl">Crédito e proteção para o seu negócio crescer</h2>
+        <p class="mt-3 text-white/80">Crédito empresarial, consórcios e seguros pensados para a realidade da sua empresa.</p>
+        <a href={linkWhatsApp('Olá, quero conhecer as soluções da Dicoon Invest para a minha empresa.')} target="_blank" rel="noopener" class="mt-6 w-fit rounded-full bg-gold px-6 py-3 font-bold text-navy hover:bg-gold-dark">
+          Soluções para empresas
+        </a>
+      </article>
+    </div>
+  </section>
+
+  <!-- Benefícios -->
+  <section class="bg-navy py-16 text-white sm:py-22">
+    <div class="container-site">
+      <h2 class="max-w-2xl text-3xl font-extrabold sm:text-4xl">Por que escolher a <span class="text-gold">Dicoon Invest</span></h2>
+      <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          beneficios.map((b) => (
+            <div class="border-l-2 border-gold pl-5">
+              <Icone nome={b.icone} class="h-7 w-7 text-gold" />
+              <h3 class="mt-4 font-bold">{b.titulo}</h3>
+              <p class="mt-2 text-sm text-white/75">{b.texto}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Consórcios e Seguros -->
+  <section class="py-16 sm:py-22">
+    <div class="container-site grid gap-5 lg:grid-cols-2">
+      <article class="rounded-card border border-border bg-white p-8 sm:p-10">
+        <Icone nome="calendario" class="h-10 w-10 text-blue" />
+        <h2 class="mt-5 text-2xl font-extrabold text-navy sm:text-3xl">Consórcio: planeje a conquista do seu imóvel ou veículo</h2>
+        <p class="mt-3 text-muted">Com a carta de crédito você organiza a compra no seu ritmo, com parcelas planejadas e sem pressa.</p>
+        <a href={linkWhatsApp('Olá, quero conhecer as opções de consórcio da Dicoon Invest.')} target="_blank" rel="noopener" class="mt-6 inline-block rounded-full bg-navy px-6 py-3 font-semibold text-white hover:bg-blue">
+          Conheça as opções
+        </a>
+      </article>
+      <article class="rounded-card bg-navy p-8 text-white sm:p-10">
+        <Icone nome="escudo" class="h-10 w-10 text-gold" />
+        <h2 class="mt-5 text-2xl font-extrabold sm:text-3xl">Proteção para o que é mais importante</h2>
+        <p class="mt-3 text-white/80">Seguro auto, residencial, de vida e para empresas. Compare coberturas com quem entende do assunto.</p>
+        <a href={linkWhatsApp('Olá, quero solicitar uma cotação de seguro com a Dicoon Invest.')} target="_blank" rel="noopener" class="mt-6 inline-block rounded-full bg-gold px-6 py-3 font-bold text-navy hover:bg-gold-dark">
+          Solicite uma cotação
+        </a>
+      </article>
+    </div>
+  </section>
+
+  <!-- Parceiros (sem logos, a pedido) -->
+  <section id="parceiros" class="border-y border-border bg-white py-14">
+    <div class="container-site text-center">
+      <h2 class="text-2xl font-extrabold text-navy sm:text-3xl">Instituições parceiras</h2>
+      <p class="mx-auto mt-3 max-w-2xl text-muted">
+        Trabalhamos com diversas instituições financeiras e seguradoras. Assim comparamos as opções e buscamos as melhores condições disponíveis para o seu perfil.
+      </p>
+    </div>
+  </section>
+
+  <!-- Sobre -->
+  <section id="sobre" class="py-16 sm:py-22">
+    <div class="container-site grid items-center gap-10 lg:grid-cols-[1.2fr_1fr]">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue">Sobre a Dicoon</p>
+        <h2 class="mt-2 text-3xl font-extrabold text-navy sm:text-4xl">Atendimento próximo para decisões financeiras importantes</h2>
+        <p class="mt-5 text-lg leading-relaxed text-muted">
+          A Dicoon Invest reúne crédito, consórcios e seguros em um só lugar. Nosso trabalho é entender o momento de cada cliente, apresentar as alternativas com clareza e acompanhar todo o processo até a conclusão.
+        </p>
+      </div>
+      <div class="rounded-card bg-navy p-8 text-white">
+        <p class="font-heading text-lg font-bold">Onde estamos</p>
+        <p class="mt-3 flex gap-3 text-white/80"><Icone nome="local" class="mt-0.5 h-5 w-5 shrink-0 text-gold" />{empresa.endereco}, {empresa.bairroCidade}</p>
+        <p class="mt-3 flex gap-3 text-white/80"><Icone nome="telefone" class="mt-0.5 h-5 w-5 shrink-0 text-gold" />{empresa.telefone} (WhatsApp)</p>
+        <p class="mt-3 flex gap-3 text-white/80"><Icone nome="email" class="mt-0.5 h-5 w-5 shrink-0 text-gold" />{empresa.email}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="duvidas" class="border-t border-border bg-white py-16 sm:py-22">
+    <div class="container-site max-w-3xl">
+      <h2 class="text-center text-3xl font-extrabold text-navy sm:text-4xl">Dúvidas frequentes</h2>
+      <div class="mt-10 space-y-3">
+        {
+          duvidas.map((d) => (
+            <details class="group rounded-card border border-border bg-bg p-5 open:bg-white">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-heading font-bold text-navy [&::-webkit-details-marker]:hidden">
+                {d.p}
+                <span class="text-2xl leading-none text-blue transition group-open:rotate-45" aria-hidden="true">+</span>
+              </summary>
+              <p class="mt-3 leading-relaxed text-muted">{d.r}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Contato -->
+  <section id="contato" class="bg-navy py-16 text-white sm:py-22">
+    <div class="container-site grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-center">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-gold">Fale com um especialista</p>
+        <h2 class="mt-2 text-3xl font-extrabold sm:text-4xl">Conte o que você precisa. A gente encontra o caminho.</h2>
+        <p class="mt-4 text-white/80">Preencha o formulário ou chame direto no WhatsApp. O atendimento é feito por uma pessoa, não por robô.</p>
+        <a href={linkWhatsApp()} target="_blank" rel="noopener" class="mt-6 inline-flex items-center gap-2 font-semibold text-gold hover:underline">
+          <Icone nome="telefone" class="h-5 w-5" />{empresa.telefone}
+        </a>
+      </div>
+      <FormContato client:visible />
+    </div>
+  </section>
+</Base>

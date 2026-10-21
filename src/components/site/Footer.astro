@@ -1,0 +1,62 @@
+---
+import { Image } from 'astro:assets'
+import logo from '../../assets/logo-dicoon.png'
+import { empresa, linkWhatsApp } from '../../config'
+import Icone from './Icone.astro'
+
+const solucoes = [
+  'Financiamento imobiliário',
+  'Financiamento veicular',
+  'Crédito consignado',
+  'Crédito empresarial',
+  'Consórcios',
+  'Seguros',
+]
+---
+
+<footer class="bg-navy-deep text-white/80">
+  <div class="container-site grid gap-10 py-14 md:grid-cols-[1.3fr_1fr_1fr_1.3fr]">
+    <div>
+      <Image src={logo} alt="Dicoon Invest" width={150} height={102} class="h-16 w-auto" />
+      <p class="mt-4 max-w-xs text-sm leading-relaxed">Crédito, consórcios e seguros com atendimento personalizado em Canoas/RS.</p>
+    </div>
+    <div>
+      <p class="font-heading text-sm font-bold text-white">Soluções</p>
+      <ul class="mt-4 space-y-2 text-sm">
+        {solucoes.map((s) => <li><a href="/#solucoes" class="hover:text-gold">{s}</a></li>)}
+      </ul>
+    </div>
+    <div>
+      <p class="font-heading text-sm font-bold text-white">Institucional</p>
+      <ul class="mt-4 space-y-2 text-sm">
+        <li><a href="/#sobre" class="hover:text-gold">Sobre a Dicoon</a></li>
+        <li><a href="/#parceiros" class="hover:text-gold">Parceiros</a></li>
+        <li><a href="/#duvidas" class="hover:text-gold">Dúvidas frequentes</a></li>
+        <li><a href="/app" class="hover:text-gold">Área do Cliente</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="font-heading text-sm font-bold text-white">Contato</p>
+      <ul class="mt-4 space-y-3 text-sm">
+        <li class="flex gap-2">
+          <Icone nome="telefone" class="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+          <a href={linkWhatsApp()} target="_blank" rel="noopener" class="hover:text-gold">{empresa.telefone} (WhatsApp)</a>
+        </li>
+        <li class="flex gap-2">
+          <Icone nome="email" class="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+          <a href={`mailto:${empresa.email}`} class="break-all hover:text-gold">{empresa.email}</a>
+        </li>
+        <li class="flex gap-2">
+          <Icone nome="local" class="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+          <span>{empresa.endereco}<br />{empresa.bairroCidade}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-white/10">
+    <div class="container-site flex flex-col gap-2 py-6 text-xs text-white/60 sm:flex-row sm:justify-between">
+      <p>{empresa.razaoSocial} · CNPJ {empresa.cnpj}</p>
+      <p>© {new Date().getFullYear()} Dicoon Invest. Todos os direitos reservados.</p>
+    </div>
+  </div>
+</footer>
