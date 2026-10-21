@@ -1,18 +1,50 @@
 ---
 import { Image } from 'astro:assets'
 import logo from '../../assets/logo-dicoon.png'
+import Icone from './Icone.astro'
 import { linkWhatsApp } from '../../config'
+import { servicos, servicosCredito } from '../../data/servicos'
 
-const menu = [
-  { href: '/credito', rotulo: 'Crédito' },
+interface Sub {
+  href: string
+  rotulo: string
+  icone?: string
+}
+interface Item {
+  href: string
+  rotulo: string
+  subs?: Sub[]
+  todos?: string // texto do link "ver tudo" no fim do submenu
+}
+
+const paraSub = (lista: typeof servicos): Sub[] => lista.map((s) => ({ href: s.url, rotulo: s.nome, icone: s.icone }))
+
+// Home Equity também fica no primeiro nível: termo de busca importante.
+const menu: Item[] = [
+  { href: '/credito', rotulo: 'Crédito', subs: paraSub(servicosCredito), todos: 'Ver todas as opções de crédito' },
+  { href: '/credito/home-equity', rotulo: 'Home Equity' },
   { href: '/consorcios', rotulo: 'Consórcios' },
   { href: '/seguros', rotulo: 'Seguros' },
-  { href: '/para-voce', rotulo: 'Para você' },
-  { href: '/empresas', rotulo: 'Para empresas' },
-  { href: '#contato', rotulo: 'Contato' },
+  { href: '/para-voce', rotulo: 'Para você', subs: paraSub(servicos.filter((s) => s.publico.includes('voce'))), todos: 'Ver soluções para você' },
+  { href: '/empresas', rotulo: 'Para empresas', subs: paraSub(servicos.filter((s) => s.publico.includes('empresa'))), todos: 'Ver soluções para empresas' },
 ]
+
+// Menu "⋯" (três pontos): atalhos institucionais.
+const mais: Sub[] = [
+  { href: '/#sobre', rotulo: 'Sobre a Dicoon', icone: 'pessoa' },
+  { href: '/#parceiros', rotulo: 'Parceiros', icone: 'maleta' },
+  { href: '/#duvidas', rotulo: 'Dúvidas frequentes', icone: 'conversa' },
+  { href: '#contato', rotulo: 'Contato', icone: 'telefone' },
+  { href: '/app', rotulo: 'Área do Cliente', icone: 'cadeado' },
+]
+
 const atual = Astro.url.pathname.replace(/\.html$/, '')
-const ativo = (href: string) => href !== '#contato' && (atual === href || atual.startsWith(`${href}/`))
+const ativo = (href: string) => !href.includes('#') && (atual === href || atual.startsWith(`${href}/`))
+// "Crédito" não acende na página de Home Equity, que tem item próprio.
+const itemAtivo = (m: Item) => (m.href === '/credito' && atual === '/credito/home-equity' ? false : ativo(m.href))
+
+const painel = 'w-72 rounded-xl border border-border bg-white p-2 text-text shadow-xl shadow-navy/20'
+const linhaSub = 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm hover:bg-bg hover:text-blue focus-visible:bg-bg'
 ---
 
 <header class="sticky top-0 z-40 border-b border-white/10 bg-navy/95 backdrop-blur">
@@ -21,35 +53,81 @@ const ativo = (href: string) => href !== '#contato' && (atual === href || atual.
       <Image src={logo} alt="Dicoon Invest" width={104} height={70} class="h-12 w-auto" loading="eager" />
     </a>
 
-    <nav class="hidden items-center gap-7 lg:flex" aria-label="Principal">
+    <nav class="hidden items-center gap-6 xl:flex" aria-label="Principal">
       {
-        menu.map((m) => (
-          <a
-            href={m.href}
-            aria-current={ativo(m.href) ? 'page' : undefined}
-            class:list={['text-sm font-medium hover:text-gold', ativo(m.href) ? 'text-gold' : 'text-white/85']}
-          >
-            {m.rotulo}
-          </a>
-        ))
+        menu.map((m) =>
+          m.subs ? (
+            <div class="group relative">
+              <a
+                href={m.href}
+                aria-haspopup="true"
+                aria-current={itemAtivo(m) ? 'page' : undefined}
+                class:list={['flex items-center gap-1 py-6 text-sm font-medium hover:text-gold', itemAtivo(m) ? 'text-gold' : 'text-white/85']}
+              >
+                {m.rotulo}
+                <svg viewBox="0 0 20 20" class="h-4 w-4 transition group-hover:rotate-180 group-focus-within:rotate-180" fill="currentColor" aria-hidden="true">
+                  <path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4z" />
+                </svg>
+              </a>
+              <div class="invisible absolute left-1/2 top-full -translate-x-1/2 opacity-0 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                <div class={painel}>
+                  {
+                    m.subs.map((s) => (
+                      <a href={s.href} class:list={[linhaSub, ativo(s.href) && 'text-blue font-semibold']}>
+                        {s.icone && <Icone nome={s.icone} class="h-5 w-5 shrink-0 text-gold" />}
+                        {s.rotulo}
+                      </a>
+                    ))
+                  }
+                  <a href={m.href} class="mt-1 block border-t border-border px-3 pb-1 pt-3 text-sm font-semibold text-blue hover:underline">
+                    {m.todos} →
+                  </a>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <a
+              href={m.href}
+              aria-current={itemAtivo(m) ? 'page' : undefined}
+              class:list={['py-6 text-sm font-medium hover:text-gold', itemAtivo(m) ? 'text-gold' : 'text-white/85']}
+            >
+              {m.rotulo}
+            </a>
+          ),
+        )
       }
+
+      <div class="group relative">
+        <button type="button" aria-haspopup="true" aria-label="Mais opções" class="flex h-9 w-9 items-center justify-center rounded-full text-white/85 hover:bg-white/10 hover:text-gold focus-visible:bg-white/10">
+          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true">
+            <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
+          </svg>
+        </button>
+        <div class="invisible absolute right-0 top-full pt-5 opacity-0 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+          <div class:list={[painel, 'w-60']}>
+            {
+              mais.map((s) => (
+                <a href={s.href} class={linhaSub}>
+                  {s.icone && <Icone nome={s.icone} class="h-5 w-5 shrink-0 text-gold" />}
+                  {s.rotulo}
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </div>
     </nav>
 
-    <div class="hidden items-center gap-3 lg:flex">
+    <div class="hidden items-center gap-3 xl:flex">
       <a href="/app" class="rounded-full border border-white/25 px-4 py-2 text-sm font-semibold text-white hover:border-gold hover:text-gold">
         Área do Cliente
       </a>
-      <a
-        href={linkWhatsApp()}
-        target="_blank"
-        rel="noopener"
-        class="rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-navy hover:bg-gold-dark"
-      >
+      <a href={linkWhatsApp()} target="_blank" rel="noopener" class="rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-navy hover:bg-gold-dark">
         Fale no WhatsApp
       </a>
     </div>
 
-    <details class="group lg:hidden">
+    <details class="group xl:hidden">
       <summary
         class="flex cursor-pointer list-none items-center rounded-lg border border-white/25 p-2 text-gold [&::-webkit-details-marker]:hidden"
         aria-label="Abrir menu"
@@ -59,17 +137,46 @@ const ativo = (href: string) => href !== '#contato' && (atual === href || atual.
           <path d="M6 6l12 12M18 6L6 18" class="hidden group-open:block"></path>
         </svg>
       </summary>
-      <nav class="absolute inset-x-0 top-full border-b border-white/10 bg-navy px-4 pb-6 pt-2" aria-label="Menu móvel">
+      <nav class="absolute inset-x-0 top-full max-h-[calc(100vh-4.5rem)] overflow-y-auto border-b border-white/10 bg-navy px-4 pb-6 pt-2" aria-label="Menu móvel">
         {
-          menu.map((m) => (
-            <a
-              href={m.href}
-              aria-current={ativo(m.href) ? 'page' : undefined}
-              class:list={['block border-b border-white/10 py-3.5 font-medium', ativo(m.href) ? 'text-gold' : 'text-white']}
-            >
-              {m.rotulo}
-            </a>
-          ))
+          menu.map((m) =>
+            m.subs ? (
+              <details class="border-b border-white/10 [&_summary::-webkit-details-marker]:hidden">
+                <summary class:list={['flex cursor-pointer list-none items-center justify-between py-3.5 font-medium', itemAtivo(m) ? 'text-gold' : 'text-white']}>
+                  {m.rotulo}
+                  <span class="text-gold" aria-hidden="true">+</span>
+                </summary>
+                <div class="pb-3 pl-3">
+                  {m.subs.map((s) => (
+                    <a href={s.href} class="flex items-center gap-3 py-2.5 text-sm text-white/85">
+                      {s.icone && <Icone nome={s.icone} class="h-4 w-4 text-gold" />}
+                      {s.rotulo}
+                    </a>
+                  ))}
+                  <a href={m.href} class="block py-2.5 text-sm font-semibold text-gold">
+                    {m.todos} →
+                  </a>
+                </div>
+              </details>
+            ) : (
+              <a
+                href={m.href}
+                aria-current={itemAtivo(m) ? 'page' : undefined}
+                class:list={['block border-b border-white/10 py-3.5 font-medium', itemAtivo(m) ? 'text-gold' : 'text-white']}
+              >
+                {m.rotulo}
+              </a>
+            ),
+          )
+        }
+        {
+          mais
+            .filter((s) => s.href !== '/app')
+            .map((s) => (
+              <a href={s.href} class="block border-b border-white/10 py-3.5 font-medium text-white">
+                {s.rotulo}
+              </a>
+            ))
         }
         <div class="mt-5 grid gap-3 sm:grid-cols-2">
           <a href="/app" class="rounded-full border border-white/25 px-4 py-3 text-center font-semibold text-white">Área do Cliente</a>
