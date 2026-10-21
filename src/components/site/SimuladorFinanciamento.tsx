@@ -100,16 +100,24 @@ export default function SimuladorFinanciamento({ tipoInicial = 'imovel', escolhe
   const r = valido ? calcular(financiado, taxaMensal, prazo) : null
   const entradaBaixa = tipo === 'imovel' && valor > 0 && entrada / valor < ENTRADA_MINIMA_IMOVEL
 
+  // Veículo: um só resultado (parcelas fixas, como é o padrão do mercado). Imóvel: compara SAC e Price.
+  const soParcelaFixa = tipo === 'veiculo'
+  const parcelas = r
+    ? soParcelaFixa
+      ? `Parcela estimada: ${moedaCentavos.format(r.price.primeira)}.`
+      : `SAC: 1ª parcela ${moedaCentavos.format(r.sac.primeira)}. Price: parcela ${moedaCentavos.format(r.price.primeira)}.`
+    : ''
   const resumo = r
-    ? `Olá! Simulei um financiamento de ${c.rotulo.toLowerCase()} no site: valor de ${moeda.format(valor)}, entrada de ${moeda.format(entrada)}, ${prazo} meses. ` +
-      `SAC: 1ª parcela ${moedaCentavos.format(r.sac.primeira)}. Price: parcela ${moedaCentavos.format(r.price.primeira)}. Quero ver as condições reais.`
+    ? `Olá! Simulei um financiamento de ${c.rotulo.toLowerCase()} no site: valor de ${moeda.format(valor)}, entrada de ${moeda.format(entrada)}, ${prazo} meses. ${parcelas} Quero ver as condições reais.`
     : `Olá! Quero simular um financiamento de ${c.rotulo.toLowerCase()}.`
 
   const colunas = r
-    ? [
-        { nome: 'SAC', dica: 'Parcelas que diminuem', ...r.sac },
-        { nome: 'Price', dica: 'Parcelas fixas', ...r.price },
-      ]
+    ? soParcelaFixa
+      ? [{ nome: 'Financiamento', dica: 'Parcelas fixas', ...r.price }]
+      : [
+          { nome: 'SAC', dica: 'Parcelas que diminuem', ...r.sac },
+          { nome: 'Price', dica: 'Parcelas fixas', ...r.price },
+        ]
     : []
 
   return (
@@ -156,18 +164,20 @@ export default function SimuladorFinanciamento({ tipoInicial = 'imovel', escolhe
         {r ? (
           <div>
             <p className="text-sm text-white/70">Valor financiado: {moeda.format(financiado)}</p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className={soParcelaFixa ? 'mx-auto mt-4 max-w-xs' : 'mt-4 grid gap-4 sm:grid-cols-2'}>
               {colunas.map((col) => (
-                <div key={col.nome} className="rounded-xl border border-white/10 p-4">
+                <div key={col.nome} className={`rounded-xl border border-white/10 p-4 ${soParcelaFixa ? 'text-center' : ''}`}>
                   <p className="font-heading text-lg font-extrabold">{col.nome}</p>
                   <p className="text-xs text-white/60">{col.dica}</p>
                   <p className="mt-3 text-xs text-white/70">{col.nome === 'SAC' ? '1ª parcela' : 'Parcela'}</p>
                   <p className="font-heading text-2xl font-extrabold text-gold">{moedaCentavos.format(col.primeira)}</p>
-                  <dl className="mt-3 space-y-1.5 text-sm">
-                    <div className="flex justify-between gap-3 border-t border-white/10 pt-1.5">
-                      <dt className="text-white/70">Última</dt>
-                      <dd className="font-semibold">{moedaCentavos.format(col.ultima)}</dd>
-                    </div>
+                  <dl className="mt-3 space-y-1.5 text-left text-sm">
+                    {!soParcelaFixa && (
+                      <div className="flex justify-between gap-3 border-t border-white/10 pt-1.5">
+                        <dt className="text-white/70">Última</dt>
+                        <dd className="font-semibold">{moedaCentavos.format(col.ultima)}</dd>
+                      </div>
+                    )}
                     <div className="flex justify-between gap-3 border-t border-white/10 pt-1.5">
                       <dt className="text-white/70">Total pago</dt>
                       <dd className="font-semibold">{moeda.format(col.total)}</dd>

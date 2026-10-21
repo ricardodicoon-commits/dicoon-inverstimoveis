@@ -58,9 +58,11 @@ const relacionados =servicos.filter((x) => x.slug !== s.slug && x.publico.some((
           <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue">Simulador</p>
           <h2 class="mt-2 text-2xl font-extrabold text-navy sm:text-3xl">Simule o seu {nomeNaFrase}</h2>
           <p class="mt-3 max-w-2xl text-muted">
-            {tipoFinanciamento
+            {tipoFinanciamento === 'imovel'
               ? 'Informe o valor, a entrada e o prazo. Você compara na hora as parcelas pelos sistemas SAC e Price, com a taxa média de mercado do Banco Central.'
-              : 'Informe o valor do imóvel, quanto você precisa e o prazo. Você vê na hora uma estimativa da parcela.'}
+              : tipoFinanciamento === 'veiculo'
+              ? 'Informe o valor, a entrada e o prazo. Você vê na hora a parcela estimada, com a taxa média de mercado do Banco Central.'
+              :'Informe o valor do imóvel, quanto você precisa e o prazo. Você vê na hora uma estimativa da parcela.'}
           </p>
           <div class="mt-8">
             {tipoFinanciamento ? (
