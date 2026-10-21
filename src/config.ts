@@ -16,10 +16,10 @@ export const empresa = {
 
 // Perfis nas redes. Vazio = o ícone não aparece no rodapé.
 export const redes = {
-  instagram: '', // https://www.instagram.com/...
-  facebook: '', // https://www.facebook.com/...
+  instagram: 'https://www.instagram.com/ricardo.dicooninvest/',
+  facebook: 'https://www.facebook.com/ricardoschimuneck/',
   messenger: '', // https://m.me/...
-  tiktok: '', // https://www.tiktok.com/@...
+  tiktok: 'https://www.tiktok.com/@dicooninvestimoveis',
 }
 
 // Medição. O Google Tag Manager carrega o Analytics (G-50TXLG4V23) e o Pixel da
