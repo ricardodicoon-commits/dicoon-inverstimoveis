@@ -1,5 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { empresa, linkWhatsApp } from '../../config'
+import { registrarEvento } from '../../lib/eventos'
 
 // Por enquanto o pedido segue pelo WhatsApp ou e-mail; na Fase 4 passa a gravar
 // como lead no CRM. Nada é guardado no site.
@@ -53,6 +54,7 @@ export default function FormContato({ servicoInicial = '' }: { servicoInicial?: 
     } else {
       window.open(linkWhatsApp(texto), '_blank', 'noopener')
     }
+    registrarEvento('pedido_enviado', { servico, canal })
     setEnviado(true)
   }
 

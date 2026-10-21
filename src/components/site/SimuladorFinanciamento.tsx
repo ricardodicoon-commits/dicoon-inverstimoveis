@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { linkWhatsApp } from '../../config'
+import { useEventoSimulacao } from '../../lib/eventos'
 
 // Simulação ILUSTRATIVA com a taxa média de mercado publicada pelo Banco Central
 // (SGS: 20773 = financiamento imobiliário com taxas reguladas; 20749 = aquisição
@@ -83,6 +84,7 @@ export default function SimuladorFinanciamento({ tipoInicial = 'imovel', escolhe
   const [entrada, setEntrada] = useState(c.entrada)
   const [prazo, setPrazo] = useState(c.prazo)
 
+  useEventoSimulacao(tipo === 'imovel' ? 'financiamento_imovel' : 'financiamento_veiculo', [tipo, valor, entrada, prazo])
   const bc = useTaxaBancoCentral(c.serie)
   const taxaAnual = bc?.anual ?? c.taxaReserva
   const referencia = bc?.referencia ?? REFERENCIA_RESERVA

@@ -1,0 +1,131 @@
+---
+// Aviso de cookies (LGPD) + Google Analytics 4 e Pixel da Meta.
+// Nada é carregado antes de a pessoa clicar em "Aceitar"; a escolha fica no
+// navegador dela e pode ser revista pelo link "Preferências de cookies" do rodapé.
+import { rastreamento } from '../../config'
+
+const ga = rastreamento.googleAnalytics
+const pixel = rastreamento.pixelMeta
+const ativo = Boolean(ga || pixel)
+---
+
+{
+  ativo && (
+    <div
+      id="aviso-cookies"
+      hidden
+      role="dialog"
+      aria-label="Aviso de cookies"
+      class="fixed inset-x-0 bottom-0 z-[60] border-t border-white/10 bg-navy-deep text-white shadow-2xl"
+    >
+      <div class="container-site flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-sm leading-relaxed text-white/80">
+          Usamos cookies para medir as visitas e melhorar nossos anúncios (Google Analytics e Meta). Você escolhe se aceita. Saiba mais na{' '}
+          <a href="/politica-de-privacidade" class="font-semibold text-gold hover:underline">
+            Política de privacidade
+          </a>
+          .
+        </p>
+        <div class="flex shrink-0 gap-3">
+          <button type="button" data-cookies="recusado" class="rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white hover:border-gold hover:text-gold">
+            Recusar
+          </button>
+          <button type="button" data-cookies="aceito" class="rounded-full bg-gold px-5 py-2.5 text-sm font-bold text-navy hover:bg-gold-dark">
+            Aceitar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+<script is:inline define:vars={{ ga, pixel, ativo }}>
+  ;(() => {
+    const CHAVE = 'dicoon-consentimento'
+    let ligado = false
+    const ler = () => {
+      try {
+        return localStorage.getItem(CHAVE)
+      } catch {
+        return null
+      }
+    }
+    const gravar = (v) => {
+      try {
+        localStorage.setItem(CHAVE, v)
+      } catch {}
+    }
+
+    function ligar() {
+      if (ligado || !ativo) return
+      ligado = true
+      if (ga) {
+        const s = document.createElement('script')
+        s.async = true
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + ga
+        document.head.appendChild(s)
+        window.dataLayer = window.dataLayer || []
+        window.gtag = function () {
+          window.dataLayer.push(arguments)
+        }
+        window.gtag('js', new Date())
+        window.gtag('config', ga)
+      }
+      if (pixel) {
+        !(function (f, b, e, v, n, t, s) {
+          if (f.fbq) return
+          n = f.fbq = function () {
+            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+          }
+          if (!f._fbq) f._fbq = n
+          n.push = n
+          n.loaded = !0
+          n.version = '2.0'
+          n.queue = []
+          t = b.createElement(e)
+          t.async = !0
+          t.src = v
+          s = b.getElementsByTagName(e)[0]
+          s.parentNode.insertBefore(t, s)
+        })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js')
+        window.fbq('init', pixel)
+        window.fbq('track', 'PageView')
+      }
+    }
+
+    // Eventos do site. Nunca enviar dados pessoais (nome, telefone, e-mail, valores digitados).
+    const eventoMeta = { clique_whatsapp: 'Contact', pedido_enviado: 'Lead' }
+    window.dicoonEvento = (nome, dados = {}) => {
+      if (!ligado) return
+      if (window.gtag) window.gtag('event', nome, dados)
+      if (window.fbq) eventoMeta[nome] ? window.fbq('track', eventoMeta[nome], dados) : window.fbq('trackCustom', nome, dados)
+    }
+    document.addEventListener(
+      'click',
+      (e) => {
+        const link = e.target instanceof Element && e.target.closest('a[href*="wa.me"]')
+        if (link) window.dicoonEvento('clique_whatsapp', { pagina: location.pathname })
+      },
+      true,
+    )
+
+    const aviso = document.getElementById('aviso-cookies')
+    if (!aviso) return
+    aviso.addEventListener('click', (e) => {
+      const escolha = e.target instanceof Element && e.target.closest('[data-cookies]')?.getAttribute('data-cookies')
+      if (!escolha) return
+      gravar(escolha)
+      aviso.hidden = true
+      if (escolha === 'aceito') ligar()
+      // Recusou depois de ter aceitado: recarrega para descarregar o Analytics e o Pixel.
+      else if (ligado) location.reload()
+    })
+    document.addEventListener('click', (e) => {
+      if (e.target instanceof Element && e.target.closest('[data-preferencias-cookies]')) aviso.hidden = false
+    })
+
+    const escolha = ler()
+    if (escolha === 'aceito') ligar()
+    else if (!escolha) aviso.hidden = false
+  })()
+</script>

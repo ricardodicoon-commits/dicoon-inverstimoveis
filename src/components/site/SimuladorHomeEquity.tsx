@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { linkWhatsApp } from '../../config'
+import { useEventoSimulacao } from '../../lib/eventos'
 
 // Simulação ILUSTRATIVA: juros compostos pela tabela Price ou SAC, sem IOF,
 // seguros, tarifas e correção por índice. A taxa é só um exemplo editável;
@@ -41,6 +42,7 @@ export default function SimuladorHomeEquity() {
   const [taxaTexto, setTaxaTexto] = useState(String(TAXA_EXEMPLO).replace('.', ','))
   const [sistema, setSistema] = useState<'price' | 'sac'>('price')
 
+  useEventoSimulacao('home_equity', [imovel, valor, prazo, taxaTexto, sistema])
   const taxa = Number(taxaTexto.replace(',', '.')) / 100
   const valido = imovel > 0 && valor > 0 && taxa > 0 && taxa < 0.2
   const percentual = imovel ? valor / imovel : 0

@@ -14,6 +14,13 @@ export const empresa = {
   site: 'https://www.dicooninvest.com.br',
 }
 
+// Códigos públicos de medição (aparecem no site; não são senhas).
+// Vazios = nada é carregado e o aviso de cookies não aparece.
+export const rastreamento = {
+  googleAnalytics: 'G-50TXLG4V23', // propriedade "Dicoon Invest - Site", fluxo "Site Dicoon Invest"
+  pixelMeta: '', // número do conjunto de dados (Pixel)
+}
+
 export function linkWhatsApp(mensagem = 'Olá, quero conhecer as soluções da Dicoon Invest.') {
   return `https://wa.me/${empresa.whatsapp}?text=${encodeURIComponent(mensagem)}`
 }
