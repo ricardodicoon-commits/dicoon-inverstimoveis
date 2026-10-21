@@ -1,0 +1,11 @@
+---
+import PaginaServico from '../../layouts/PaginaServico.astro'
+import { servicosCredito } from '../../data/servicos'
+
+export function getStaticPaths() {
+  return servicosCredito.map((servico) => ({ params: { slug: servico.url.replace('/credito/', '') }, props: { servico } }))
+}
+const { servico } = Astro.props
+---
+
+<PaginaServico servico={servico} />

@@ -3,15 +3,7 @@ import { Image } from 'astro:assets'
 import logo from '../../assets/logo-dicoon.png'
 import { empresa, linkWhatsApp } from '../../config'
 import Icone from './Icone.astro'
-
-const solucoes = [
-  'Financiamento imobiliário',
-  'Financiamento veicular',
-  'Crédito consignado',
-  'Crédito empresarial',
-  'Consórcios',
-  'Seguros',
-]
+import { servicos } from '../../data/servicos'
 ---
 
 <footer class="bg-navy-deep text-white/80">
@@ -23,12 +15,14 @@ const solucoes = [
     <div>
       <p class="font-heading text-sm font-bold text-white">Soluções</p>
       <ul class="mt-4 space-y-2 text-sm">
-        {solucoes.map((s) => <li><a href="/#solucoes" class="hover:text-gold">{s}</a></li>)}
+        {servicos.map((s) => <li><a href={s.url} class="hover:text-gold">{s.nome}</a></li>)}
       </ul>
     </div>
     <div>
       <p class="font-heading text-sm font-bold text-white">Institucional</p>
       <ul class="mt-4 space-y-2 text-sm">
+        <li><a href="/para-voce" class="hover:text-gold">Soluções para você</a></li>
+        <li><a href="/empresas" class="hover:text-gold">Soluções para empresas</a></li>
         <li><a href="/#sobre" class="hover:text-gold">Sobre a Dicoon</a></li>
         <li><a href="/#parceiros" class="hover:text-gold">Parceiros</a></li>
         <li><a href="/#duvidas" class="hover:text-gold">Dúvidas frequentes</a></li>

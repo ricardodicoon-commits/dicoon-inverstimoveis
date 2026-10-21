@@ -1,0 +1,21 @@
+---
+import PaginaHub from '../layouts/PaginaHub.astro'
+import familiaImg from '../assets/familia.jpg'
+import { servicos } from '../data/servicos'
+---
+
+<PaginaHub
+  url="/para-voce"
+  seoTitulo="Soluções financeiras para você em Canoas/RS | Dicoon Invest"
+  seoDescricao="Financiamento imobiliário e de veículos, crédito consignado, consórcios e seguros para você e sua família, com atendimento personalizado em Canoas/RS."
+  h1="Soluções para você"
+  intro="Casa própria, carro novo, crédito com desconto em folha, consórcio planejado e seguros para proteger o que importa. Tudo com atendimento próximo."
+  tituloLista="O que podemos fazer por você"
+  itens={servicos.filter((s) => s.publico.includes('voce'))}
+  imagem={familiaImg}
+  destaques={[
+    { icone: 'conversa', titulo: 'Atendimento consultivo', texto: 'Entendemos o seu momento antes de indicar qualquer solução.' },
+    { icone: 'lupa', titulo: 'Clareza nas condições', texto: 'Tudo explicado com transparência antes de qualquer assinatura.' },
+    { icone: 'cadeado', titulo: 'Seus dados protegidos', texto: 'Pedimos só as informações necessárias para o seu atendimento.' },
+  ]}
+/>

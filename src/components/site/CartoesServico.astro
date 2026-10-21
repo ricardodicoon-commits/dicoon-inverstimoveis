@@ -1,0 +1,27 @@
+---
+import type { Servico } from '../../data/servicos'
+import Icone from './Icone.astro'
+
+interface Props {
+  itens: Servico[]
+  colunas?: 2 | 3
+}
+const { itens, colunas = 3 } = Astro.props
+---
+
+<div class:list={['grid gap-5 sm:grid-cols-2', colunas === 3 && 'lg:grid-cols-3']}>
+  {
+    itens.map((s) => (
+      <a href={s.url} class="group flex flex-col rounded-card bg-navy p-7 text-white shadow-sm transition hover:-translate-y-1 hover:bg-blue">
+        <span class="flex h-12 w-12 items-center justify-center rounded-xl border border-gold/50 text-gold">
+          <Icone nome={s.icone} />
+        </span>
+        <h3 class="mt-5 text-lg font-bold">{s.nome}</h3>
+        <p class="mt-2 flex-1 text-sm leading-relaxed text-white/75">{s.resumo}</p>
+        <span class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-gold">
+          Saiba mais <Icone nome="seta" class="h-4 w-4 transition group-hover:translate-x-1" />
+        </span>
+      </a>
+    ))
+  }
+</div>

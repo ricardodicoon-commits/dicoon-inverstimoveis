@@ -1,0 +1,21 @@
+---
+import PaginaHub from '../layouts/PaginaHub.astro'
+import heroImg from '../assets/hero-cidade.jpg'
+import { servicos } from '../data/servicos'
+---
+
+<PaginaHub
+  url="/empresas"
+  seoTitulo="Soluções financeiras para empresas em Canoas/RS | Dicoon Invest"
+  seoDescricao="Crédito para empresas, financiamento de veículos, consórcios e seguro empresarial com diagnóstico e acompanhamento em Canoas/RS."
+  h1="Soluções para empresas"
+  intro="Crédito, consórcios e seguros pensados para a realidade do seu negócio, com diagnóstico do momento da empresa e acompanhamento de cada proposta."
+  tituloLista="Soluções para o seu negócio"
+  itens={servicos.filter((s) => s.publico.includes('empresa'))}
+  imagem={heroImg}
+  destaques={[
+    { icone: 'maleta', titulo: 'Diagnóstico do negócio', texto: 'Entendemos o momento da empresa e para que o recurso será usado.' },
+    { icone: 'lupa', titulo: 'Comparação de linhas', texto: 'Buscamos alternativas nas instituições parceiras para o perfil da sua empresa.' },
+    { icone: 'check', titulo: 'Acompanhamento', texto: 'Seguimos com você em cada etapa, até a conclusão.' },
+  ]}
+/>

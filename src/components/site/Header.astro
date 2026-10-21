@@ -3,14 +3,16 @@ import { Image } from 'astro:assets'
 import logo from '../../assets/logo-dicoon.png'
 import { linkWhatsApp } from '../../config'
 
-// Na Fase 2 estes links passam a apontar para as páginas próprias.
 const menu = [
-  { href: '/#solucoes', rotulo: 'Soluções' },
-  { href: '/#para-voce', rotulo: 'Para você' },
-  { href: '/#empresas', rotulo: 'Para empresas' },
-  { href: '/#sobre', rotulo: 'Sobre' },
-  { href: '/#contato', rotulo: 'Contato' },
+  { href: '/credito', rotulo: 'Crédito' },
+  { href: '/consorcios', rotulo: 'Consórcios' },
+  { href: '/seguros', rotulo: 'Seguros' },
+  { href: '/para-voce', rotulo: 'Para você' },
+  { href: '/empresas', rotulo: 'Para empresas' },
+  { href: '#contato', rotulo: 'Contato' },
 ]
+const atual = Astro.url.pathname.replace(/\.html$/, '')
+const ativo = (href: string) => href !== '#contato' && (atual === href || atual.startsWith(`${href}/`))
 ---
 
 <header class="sticky top-0 z-40 border-b border-white/10 bg-navy/95 backdrop-blur">
@@ -22,7 +24,11 @@ const menu = [
     <nav class="hidden items-center gap-7 lg:flex" aria-label="Principal">
       {
         menu.map((m) => (
-          <a href={m.href} class="text-sm font-medium text-white/85 hover:text-gold">
+          <a
+            href={m.href}
+            aria-current={ativo(m.href) ? 'page' : undefined}
+            class:list={['text-sm font-medium hover:text-gold', ativo(m.href) ? 'text-gold' : 'text-white/85']}
+          >
             {m.rotulo}
           </a>
         ))
@@ -56,7 +62,11 @@ const menu = [
       <nav class="absolute inset-x-0 top-full border-b border-white/10 bg-navy px-4 pb-6 pt-2" aria-label="Menu móvel">
         {
           menu.map((m) => (
-            <a href={m.href} class="block border-b border-white/10 py-3.5 font-medium text-white">
+            <a
+              href={m.href}
+              aria-current={ativo(m.href) ? 'page' : undefined}
+              class:list={['block border-b border-white/10 py-3.5 font-medium', ativo(m.href) ? 'text-gold' : 'text-white']}
+            >
               {m.rotulo}
             </a>
           ))

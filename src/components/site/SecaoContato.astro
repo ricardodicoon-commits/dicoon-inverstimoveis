@@ -1,0 +1,25 @@
+---
+import FormContato from './FormContato'
+import Icone from './Icone.astro'
+import { empresa, linkWhatsApp } from '../../config'
+
+interface Props {
+  servicoInicial?: string
+  titulo?: string
+}
+const { servicoInicial = '', titulo = 'Conte o que você precisa. A gente encontra o caminho.' } = Astro.props
+---
+
+<section id="contato" class="bg-navy py-16 text-white sm:py-22">
+  <div class="container-site grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-center">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-gold">Fale com um especialista</p>
+      <h2 class="mt-2 text-3xl font-extrabold sm:text-4xl">{titulo}</h2>
+      <p class="mt-4 text-white/80">Preencha o formulário ou chame direto no WhatsApp. O atendimento é feito por uma pessoa, não por robô.</p>
+      <a href={linkWhatsApp()} target="_blank" rel="noopener" class="mt-6 inline-flex items-center gap-2 font-semibold text-gold hover:underline">
+        <Icone nome="telefone" class="h-5 w-5" />{empresa.telefone}
+      </a>
+    </div>
+    <FormContato client:visible servicoInicial={servicoInicial} />
+  </div>
+</section>

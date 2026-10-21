@@ -16,10 +16,10 @@ const canais = ['WhatsApp', 'Ligação', 'E-mail']
 
 type Erros = Partial<Record<'nome' | 'contato' | 'servico' | 'aviso', string>>
 
-export default function FormContato() {
+export default function FormContato({ servicoInicial = '' }: { servicoInicial?: string }) {
   const [nome, setNome] = useState('')
   const [contato, setContato] = useState('')
-  const [servico, setServico] = useState('')
+  const [servico, setServico] = useState(servicos.includes(servicoInicial) ? servicoInicial : '')
   const [canal, setCanal] = useState(canais[0])
   const [aviso, setAviso] = useState(false)
   const [erros, setErros] = useState<Erros>({})

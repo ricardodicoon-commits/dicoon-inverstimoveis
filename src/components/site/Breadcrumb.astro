@@ -1,0 +1,31 @@
+---
+import { empresa } from '../../config'
+
+interface Props {
+  itens: { nome: string; url: string }[] // sem o "Início"; o último é a página atual
+}
+const todos = [{ nome: 'Início', url: '/' }, ...Astro.props.itens]
+const dados = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: todos.map((i, n) => ({ '@type': 'ListItem', position: n + 1, name: i.nome, item: new URL(i.url, empresa.site).href })),
+}
+---
+
+<nav aria-label="Você está em" class="text-sm text-white/70">
+  <ol class="flex flex-wrap items-center gap-2">
+    {
+      todos.map((i, n) =>
+        n < todos.length - 1 ? (
+          <li class="flex items-center gap-2">
+            <a href={i.url} class="hover:text-gold">{i.nome}</a>
+            <span aria-hidden="true">›</span>
+          </li>
+        ) : (
+          <li aria-current="page" class="text-white">{i.nome}</li>
+        ),
+      )
+    }
+  </ol>
+</nav>
+<script type="application/ld+json" set:html={JSON.stringify(dados)} />

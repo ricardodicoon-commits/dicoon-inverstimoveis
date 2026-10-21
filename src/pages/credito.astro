@@ -1,0 +1,21 @@
+---
+import PaginaHub from '../layouts/PaginaHub.astro'
+import heroImg from '../assets/hero-cidade.jpg'
+import { servicosCredito } from '../data/servicos'
+---
+
+<PaginaHub
+  url="/credito"
+  seoTitulo="Crédito para você e sua empresa em Canoas/RS | Dicoon Invest"
+  seoDescricao="Financiamento imobiliário, financiamento de veículos, crédito consignado e crédito empresarial com atendimento de correspondente bancário em Canoas/RS."
+  h1="Crédito"
+  intro="Financiamento imobiliário, financiamento de veículos, crédito consignado e crédito para empresas. Comparamos as opções nas instituições parceiras e acompanhamos a sua proposta do início ao fim."
+  tituloLista="Escolha o tipo de crédito"
+  itens={servicosCredito}
+  imagem={heroImg}
+  destaques={[
+    { icone: 'lupa', titulo: 'Comparação de opções', texto: 'Levamos a sua proposta a diferentes instituições para você escolher com informação.' },
+    { icone: 'conversa', titulo: 'Tudo explicado', texto: 'Entrada, prazo e parcelas apresentados com clareza antes de qualquer assinatura.' },
+    { icone: 'check', titulo: 'Acompanhamento', texto: 'Seguimos com você da simulação até a assinatura do contrato.' },
+  ]}
+/>
