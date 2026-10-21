@@ -11,6 +11,7 @@ import { Entrada } from './paginas/Entrada'
 import { Equipe } from './paginas/Equipe'
 import { Negociacoes } from './paginas/Negociacoes'
 import { Painel } from './paginas/Painel'
+import { PortalCliente } from './paginas/PortalCliente'
 import { TrocarSenha } from './TrocarSenha'
 import { Carregando } from './ui'
 
@@ -59,6 +60,7 @@ function Portao() {
   }
   if (!perfil || !perfil.aprovado) return <Aguardando desativado={perfil ? !perfil.ativo : false} />
   if (!perfil.ativo) return <Aguardando desativado />
+  if (perfil.role === 'cliente') return <PortalCliente />
 
   return (
     <Routes>

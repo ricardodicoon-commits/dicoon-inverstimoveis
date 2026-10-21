@@ -1,3 +1,4 @@
+-- SUBSTITUÍDO por 03-papel-cliente.sql + 04-acessos-por-papel.sql. Não rodar mais.
 -- Dicoon CRM: regras de acesso (RLS)
 -- Rodar no Supabase: SQL Editor > New query > colar tudo > Run.
 -- Regras:

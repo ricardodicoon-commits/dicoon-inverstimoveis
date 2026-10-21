@@ -1,4 +1,4 @@
-export type Papel = 'admin' | 'corretor' | 'atendente'
+export type Papel = 'admin' | 'corretor' | 'atendente' | 'cliente'
 
 export interface Perfil {
   id: string
@@ -26,6 +26,7 @@ export interface Cliente {
   observacoes: string | null
   status: string | null
   responsavel_id: string
+  usuario_id?: string | null
   created_at: string
   responsavel?: { nome: string | null; email: string } | null
 }

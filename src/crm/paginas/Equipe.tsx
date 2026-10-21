@@ -35,8 +35,11 @@ export function Equipe() {
     onSettled: () => qc.invalidateQueries({ queryKey: chave }),
   })
 
-  const pendentes = data?.filter((p) => !p.aprovado) ?? []
-  const aprovados = data?.filter((p) => p.aprovado) ?? []
+  const equipe = data?.filter((p) => p.role !== 'cliente') ?? []
+  const pendentes = equipe.filter((p) => !p.aprovado)
+  const aprovados = equipe.filter((p) => p.aprovado)
+  // Clientes entram liberados quando o admin cria o login com o e-mail do cadastro.
+  const clientesPortal = data?.filter((p) => p.role === 'cliente') ?? []
 
   function Linha({ p }: { p: Perfil }) {
     const souEu = p.id === eu?.id
@@ -48,17 +51,21 @@ export function Equipe() {
           </p>
           <p className="truncate text-sm text-muted">{p.email}</p>
         </div>
-        <select
-          className={`${estiloCampo} w-36`}
-          value={p.role}
-          disabled={souEu}
-          onChange={(e) => alterar.mutate({ id: p.id, campos: { role: e.target.value as Papel } })}
-          aria-label="Função"
-        >
-          <option value="atendente">Atendente</option>
-          <option value="corretor">Corretor</option>
-          <option value="admin">Administrador</option>
-        </select>
+        {p.role === 'cliente' ? (
+          <span className="rounded-full bg-gold/10 px-3 py-1 text-xs text-gold">Cliente</span>
+        ) : (
+          <select
+            className={`${estiloCampo} w-36`}
+            value={p.role}
+            disabled={souEu}
+            onChange={(e) => alterar.mutate({ id: p.id, campos: { role: e.target.value as Papel } })}
+            aria-label="Função"
+          >
+            <option value="atendente">Atendente</option>
+            <option value="corretor">Corretor</option>
+            <option value="admin">Administrador</option>
+          </select>
+        )}
         {!p.aprovado ? (
           <>
             <Botao onClick={() => alterar.mutate({ id: p.id, campos: { aprovado: true, ativo: true } })}>Aprovar</Botao>
@@ -101,6 +108,18 @@ export function Equipe() {
               {aprovados.map((p) => (
                 <Linha key={p.id} p={p} />
               ))}
+            </div>
+          </section>
+          <section>
+            <h2 className="mb-3 text-sm font-bold text-gold">Clientes com acesso ao portal ({clientesPortal.length})</h2>
+            <div className="space-y-3">
+              {clientesPortal.length ? (
+                clientesPortal.map((p) => <Linha key={p.id} p={p} />)
+              ) : (
+                <p className="text-sm text-muted">
+                  Para liberar um cliente: cadastre-o com e-mail em Clientes e crie o login com esse mesmo e-mail no Supabase.
+                </p>
+              )}
             </div>
           </section>
         </div>

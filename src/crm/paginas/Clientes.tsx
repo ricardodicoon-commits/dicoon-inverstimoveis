@@ -169,6 +169,7 @@ export function Clientes() {
       {editando && (
         <FormCliente
           cliente={editando === 'novo' ? null : editando}
+          somenteLeitura={!ehAdmin && editando !== 'novo'}
           aoFechar={() => setEditando(null)}
           aoSalvar={(campos) => salvar.mutate({ id: editando === 'novo' ? undefined : editando.id, campos })}
           aoExcluir={
@@ -184,13 +185,16 @@ export function Clientes() {
   )
 }
 
+// Comercial cadastra, mas só o admin altera depois de salvo (o banco também bloqueia).
 function FormCliente({
   cliente,
+  somenteLeitura,
   aoFechar,
   aoSalvar,
   aoExcluir,
 }: {
   cliente: Cliente | null
+  somenteLeitura: boolean
   aoFechar: () => void
   aoSalvar: (campos: Formulario) => void
   aoExcluir?: () => void
@@ -208,8 +212,14 @@ function FormCliente({
   }
 
   return (
-    <Modal titulo={cliente ? 'Editar cliente' : 'Novo cliente'} aoFechar={aoFechar}>
+    <Modal titulo={!cliente ? 'Novo cliente' : somenteLeitura ? 'Dados do cliente' : 'Editar cliente'} aoFechar={aoFechar}>
       <form onSubmit={enviar} className="grid gap-4 sm:grid-cols-2">
+        {cliente?.usuario_id && (
+          <div className="sm:col-span-2">
+            <Aviso tipo="ok">Este cliente tem acesso ao portal.</Aviso>
+          </div>
+        )}
+        <fieldset disabled={somenteLeitura} className="contents">
         <div className="sm:col-span-2">
           <Campo rotulo="Nome completo *">
             <input className={estiloCampo} value={f.nome_completo} onChange={muda('nome_completo')} required autoFocus />
@@ -221,7 +231,7 @@ function FormCliente({
         <Campo rotulo="Telefone *">
           <input className={estiloCampo} value={f.telefone} onChange={muda('telefone')} required inputMode="tel" />
         </Campo>
-        <Campo rotulo="E-mail">
+        <Campo rotulo="E-mail (libera o acesso ao portal)">
           <input className={estiloCampo} type="email" value={f.email} onChange={muda('email')} />
         </Campo>
         <Campo rotulo="Data de nascimento">
@@ -256,6 +266,15 @@ function FormCliente({
             <textarea className={`${estiloCampo} min-h-20`} value={f.observacoes} onChange={muda('observacoes')} />
           </Campo>
         </div>
+        </fieldset>
+        {somenteLeitura ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 sm:col-span-2">
+            <p className="text-xs text-muted">Somente o administrador pode alterar ou excluir este cadastro.</p>
+            <Botao type="button" variante="secundario" onClick={aoFechar}>
+              Fechar
+            </Botao>
+          </div>
+        ) : (
         <div className="flex flex-wrap justify-between gap-3 sm:col-span-2">
           {aoExcluir ? (
             <Botao type="button" variante="perigo" onClick={aoExcluir}>
@@ -271,6 +290,7 @@ function FormCliente({
             <Botao type="submit">Salvar</Botao>
           </div>
         </div>
+        )}
       </form>
     </Modal>
   )

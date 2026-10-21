@@ -93,6 +93,8 @@ export function Negociacoes() {
                       <select
                         className={`${estiloCampo} mt-2 py-1.5 text-xs`}
                         value={n.etapa}
+                        disabled={!ehAdmin}
+                        title={ehAdmin ? undefined : 'Somente o administrador muda a etapa'}
                         onChange={(e) => salvar.mutate({ id: n.id, campos: { etapa: e.target.value } })}
                         aria-label="Mudar etapa"
                       >
@@ -112,6 +114,7 @@ export function Negociacoes() {
       {editando && (
         <FormNegociacao
           negociacao={editando === 'nova' ? null : editando}
+          somenteLeitura={!ehAdmin && editando !== 'nova'}
           aoFechar={() => setEditando(null)}
           aoSalvar={(campos) => salvar.mutate({ id: editando === 'nova' ? undefined : editando.id, campos })}
           aoExcluir={
@@ -127,13 +130,16 @@ export function Negociacoes() {
   )
 }
 
+// Comercial cria, mas só o admin altera depois de salva (o banco também bloqueia).
 function FormNegociacao({
   negociacao,
+  somenteLeitura,
   aoFechar,
   aoSalvar,
   aoExcluir,
 }: {
   negociacao: Negociacao | null
+  somenteLeitura: boolean
   aoFechar: () => void
   aoSalvar: (campos: Partial<Negociacao>) => void
   aoExcluir?: () => void
@@ -163,8 +169,9 @@ function FormNegociacao({
   }
 
   return (
-    <Modal titulo={negociacao ? 'Editar negociação' : 'Nova negociação'} aoFechar={aoFechar}>
+    <Modal titulo={!negociacao ? 'Nova negociação' : somenteLeitura ? 'Negociação' : 'Editar negociação'} aoFechar={aoFechar}>
       <form onSubmit={enviar} className="grid gap-4">
+        <fieldset disabled={somenteLeitura} className="contents">
         <Campo rotulo="Cliente *">
           <select className={estiloCampo} value={clienteId} onChange={(e) => setClienteId(e.target.value)} required>
             <option value="">{clientes.isPending ? 'Carregando…' : 'Selecione o cliente'}</option>
@@ -190,6 +197,15 @@ function FormNegociacao({
         <Campo rotulo="Observações">
           <textarea className={`${estiloCampo} min-h-24`} value={obs} onChange={(e) => setObs(e.target.value)} />
         </Campo>
+        </fieldset>
+        {somenteLeitura ? (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-muted">Somente o administrador pode alterar ou excluir esta negociação.</p>
+            <Botao type="button" variante="secundario" onClick={aoFechar}>
+              Fechar
+            </Botao>
+          </div>
+        ) : (
         <div className="flex flex-wrap justify-between gap-3">
           {aoExcluir ? (
             <Botao type="button" variante="perigo" onClick={aoExcluir}>
@@ -205,6 +221,7 @@ function FormNegociacao({
             <Botao type="submit">Salvar</Botao>
           </div>
         </div>
+        )}
       </form>
     </Modal>
   )
