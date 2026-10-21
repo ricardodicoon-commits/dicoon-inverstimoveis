@@ -4,6 +4,7 @@ import Base from '../layouts/Base.astro'
 import Icone from '../components/site/Icone.astro'
 import CartoesServico from '../components/site/CartoesServico.astro'
 import SecaoContato from '../components/site/SecaoContato.astro'
+import InstituicoesParceiras from '../components/site/InstituicoesParceiras.astro'
 import heroImg from '../assets/hero-cidade.jpg'
 import familiaImg from '../assets/familia.jpg'
 import { empresa, linkWhatsApp } from '../config'
@@ -85,6 +86,8 @@ const duvidas = [
     </div>
   </section>
 
+  <InstituicoesParceiras />
+
   <!-- Públicos -->
   <section class="pb-16 sm:pb-22">
     <div class="container-site grid gap-5 lg:grid-cols-2">
@@ -149,17 +152,6 @@ const duvidas = [
           Solicite uma cotação
         </a>
       </article>
-    </div>
-  </section>
-
-  <!-- Parceiros (sem logos, a pedido) -->
-  <section id="parceiros" class="border-y border-border bg-white py-14">
-    <div class="container-site text-center">
-      <h2 class="text-2xl font-extrabold text-navy sm:text-3xl">Instituições parceiras</h2>
-      <p class="mx-auto mt-3 max-w-2xl text-muted">
-        Trabalhamos com diversas instituições financeiras e seguradoras. Assim comparamos as opções e buscamos as melhores condições disponíveis para o seu perfil.
-      </p>
-      <a href="/parceiros" class="mt-5 inline-block font-semibold text-blue hover:underline">Como funcionam as parcerias →</a>
     </div>
   </section>
 

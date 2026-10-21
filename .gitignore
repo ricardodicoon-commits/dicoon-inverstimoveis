@@ -53,3 +53,6 @@ backup/
 
 # prévias de tela
 /previas/
+
+# capturas de prévia (não versionar)
+/.previa

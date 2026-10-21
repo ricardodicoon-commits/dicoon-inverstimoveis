@@ -1,0 +1,265 @@
+---
+import { parceiros } from '../../data/parceiros'
+import { linkWhatsApp } from '../../config'
+
+// Ordem embaralhada a cada build, dividida em duas faixas que andam em sentidos opostos.
+function embaralhar<T>(lista: T[]): T[] {
+  const a = [...lista]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+const misturados = embaralhar(parceiros)
+const metade = Math.ceil(misturados.length / 2)
+const faixas = [
+  { itens: misturados.slice(0, metade), sentido: 'esquerda' },
+  { itens: misturados.slice(metade), sentido: 'direita' },
+]
+const bancos = parceiros.filter((p) => p.tipo === 'banco')
+const seguradoras = parceiros.filter((p) => p.tipo === 'seguradora')
+---
+
+<section id="instituicoes-parceiras" aria-labelledby="titulo-parceiras" class="border-y border-border bg-white py-16 sm:py-22">
+  <div class="container-site text-center">
+    <h2 id="titulo-parceiras" class="text-3xl font-extrabold text-navy sm:text-4xl">Instituições parceiras</h2>
+    <p class="mx-auto mt-4 max-w-2xl text-muted">
+      Trabalhamos com bancos, seguradoras e instituições financeiras parceiras para buscar alternativas de crédito, financiamento, consórcio e seguros conforme o perfil de cada cliente.
+    </p>
+  </div>
+
+  <!-- Nomes em texto para leitores de tela e buscadores; as faixas abaixo são só visuais. -->
+  <div class="sr-only">
+    <h3>Bancos e instituições financeiras</h3>
+    <ul>{bancos.map((p) => <li>{p.nome}</li>)}</ul>
+    <h3>Seguradoras</h3>
+    <ul>{seguradoras.map((p) => <li>{p.nome}</li>)}</ul>
+  </div>
+
+  <div class="mt-10 space-y-4" aria-hidden="true">
+    {
+      faixas.map((f) => (
+        <div class="faixa" data-faixa data-sentido={f.sentido}>
+          <div class="trilho" data-trilho>
+            <ul class="grupo" data-grupo>
+              {f.itens.map((p) => (
+                <li class="cartao">
+                  <img
+                    src={`/img/parceiros/${p.arquivo}.webp`}
+                    alt={p.alt}
+                    width={p.largura}
+                    height={p.altura}
+                    decoding="async"
+                    draggable="false"
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="container-site text-center">
+    <p class="mx-auto mt-8 max-w-3xl text-sm text-muted">
+      As instituições apresentadas são parceiras conforme disponibilidade e autorização comercial. A aprovação, as taxas, as coberturas e as condições dependem da análise de cada instituição.
+    </p>
+    <a
+      href={linkWhatsApp('Olá! Quero comparar opções de crédito, financiamento, consórcio ou seguro.')}
+      target="_blank"
+      rel="noopener"
+      class="mt-8 inline-block rounded-full bg-gold px-7 py-3.5 font-bold text-navy hover:bg-gold-dark"
+    >
+      Quero comparar opções
+    </a>
+  </div>
+</section>
+
+<style>
+  .faixa {
+    --gap: 0.75rem;
+    --n: 3;
+    --logo-altura: 3.25rem;
+    container-type: inline-size;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-block: 0.5rem;
+    mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
+  }
+  .faixa::-webkit-scrollbar {
+    display: none;
+  }
+  /* Com JavaScript a faixa anda sozinha e pode ser arrastada; sem ele, rola na mão. */
+  .faixa.ativa {
+    overflow: hidden;
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+  }
+  .faixa.ativa.arrastando {
+    cursor: grabbing;
+  }
+  .trilho {
+    display: flex;
+    width: max-content;
+    will-change: transform;
+  }
+  .grupo {
+    display: flex;
+    gap: var(--gap);
+    padding-right: var(--gap);
+    margin: 0;
+    list-style: none;
+  }
+  .cartao {
+    flex: 0 0 auto;
+    width: calc((100cqw - (var(--n) - 1) * var(--gap)) / var(--n));
+    height: calc(var(--logo-altura) + 1.25rem);
+    padding: 0.625rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 0.875rem;
+    box-shadow: 0 1px 2px rgb(16 36 58 / 0.04);
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+  .cartao img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: var(--logo-altura);
+    object-fit: contain;
+    pointer-events: none;
+  }
+  @media (hover: hover) {
+    .cartao:hover {
+      transform: scale(1.06);
+      box-shadow: 0 8px 20px rgb(16 36 58 / 0.12);
+    }
+  }
+  @media (width >= 48rem) {
+    .faixa {
+      --gap: 1rem;
+      --n: 5;
+      --logo-altura: 3.75rem;
+    }
+  }
+  @media (width >= 64rem) {
+    .faixa {
+      --n: 8;
+      --logo-altura: 4.25rem;
+    }
+  }
+  @media (width >= 96rem) {
+    .faixa {
+      --n: 10;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cartao {
+      transition: none;
+    }
+    .cartao:hover {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  // Carrossel contínuo sem biblioteca: desloca o trilho a cada quadro, aceita arrastar
+  // (dedo ou mouse), pausa com o mouse em cima e fica parado para quem prefere menos movimento.
+  const VELOCIDADE = 35 // px por segundo
+  const menosMovimento = matchMedia('(prefers-reduced-motion: reduce)')
+
+  for (const faixa of document.querySelectorAll<HTMLElement>('[data-faixa]')) {
+    const trilho = faixa.querySelector<HTMLElement>('[data-trilho]')!
+    const grupo = faixa.querySelector<HTMLElement>('[data-grupo]')!
+    const sinal = faixa.dataset.sentido === 'direita' ? -1 : 1
+    let largura = 0
+    let pos = 0
+    let pausado = false
+    let arrastando = false
+    let inicioX = 0
+    let inicioPos = 0
+    let ultimo = 0
+    let quadro = 0
+
+    // Cópias suficientes para cobrir a faixa inteira mais um grupo, sem buracos.
+    function preencher() {
+      trilho.querySelectorAll('[data-copia]').forEach((c) => c.remove())
+      largura = grupo.offsetWidth
+      if (!largura) return // ainda sem layout (aba oculta, redimensionando)
+      const copias = Math.ceil(faixa.clientWidth / largura) + 1
+      for (let i = 0; i < copias; i++) {
+        const copia = grupo.cloneNode(true) as HTMLElement
+        copia.dataset.copia = ''
+        copia.removeAttribute('data-grupo')
+        trilho.append(copia)
+      }
+    }
+
+    function desenhar() {
+      // Sem largura medida, pos % 0 viraria NaN e travaria a animação para sempre.
+      if (!largura || !Number.isFinite(pos)) return
+      pos =((pos % largura) + largura) % largura
+      trilho.style.transform = `translate3d(${-pos}px, 0, 0)`
+    }
+
+    function animar(agora: number) {
+      const dt = ultimo ? Math.min(agora - ultimo, 64) / 1000 : 0
+      ultimo = agora
+      if (!pausado && !arrastando && !menosMovimento.matches) pos += VELOCIDADE * dt * sinal
+      desenhar()
+      quadro = requestAnimationFrame(animar)
+    }
+
+    faixa.addEventListener('pointerenter', (e) => {
+      if (e.pointerType === 'mouse') pausado = true
+    })
+    faixa.addEventListener('pointerleave', (e) => {
+      if (e.pointerType === 'mouse') pausado = false
+    })
+    faixa.addEventListener('pointerdown', (e) => {
+      arrastando = true
+      inicioX = e.clientX
+      inicioPos = pos
+      faixa.classList.add('arrastando')
+      faixa.setPointerCapture(e.pointerId)
+    })
+    faixa.addEventListener('pointermove', (e) => {
+      if (!arrastando) return
+      pos = inicioPos - (e.clientX - inicioX)
+      desenhar()
+    })
+    const soltar = () => {
+      arrastando = false
+      faixa.classList.remove('arrastando')
+    }
+    faixa.addEventListener('pointerup', soltar)
+    faixa.addEventListener('pointercancel', soltar)
+
+    // Só anima enquanto a faixa está visível na tela.
+    new IntersectionObserver(([entrada]) => {
+      cancelAnimationFrame(quadro)
+      ultimo = 0
+      if (entrada.isIntersecting) quadro = requestAnimationFrame(animar)
+    }).observe(faixa)
+
+    new ResizeObserver(() => {
+      preencher()
+      desenhar()
+    }).observe(faixa)
+
+    faixa.classList.add('ativa')
+    faixa.scrollLeft = 0
+    preencher()
+    if (sinal === -1) pos = largura / 2
+    desenhar()
+  }
+</script>
