@@ -1,0 +1,51 @@
+---
+import PaginaTexto from '../layouts/PaginaTexto.astro'
+import Icone from '../components/site/Icone.astro'
+import FormContato from '../components/site/FormContato'
+import { empresa, linkWhatsApp } from '../config'
+
+const mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${empresa.endereco}, ${empresa.bairroCidade}`)}`
+const canais = [
+  { icone: 'telefone', titulo: 'WhatsApp', texto: empresa.telefone, href: linkWhatsApp(), externo: true },
+  { icone: 'email', titulo: 'E-mail', texto: empresa.email, href: `mailto:${empresa.email}`, externo: false },
+  { icone: 'local', titulo: 'Endereço', texto: `${empresa.endereco}, ${empresa.bairroCidade}`, href: mapa, externo: true },
+]
+---
+
+<PaginaTexto
+  url="/contato"
+  seoTitulo="Contato | Dicoon Invest em Canoas/RS"
+  seoDescricao="Fale com a Dicoon Invest pelo WhatsApp (51) 98236-7904, pelo e-mail contato@dicooninvest.com.br ou visite nosso escritório em Canoas/RS."
+  h1="Fale com a Dicoon Invest"
+  intro="Escolha o canal que preferir. O atendimento é feito por uma pessoa, não por robô."
+>
+  <section class="py-16 sm:py-20">
+    <div class="container-site grid gap-10 lg:grid-cols-[1fr_1.3fr]">
+      <div class="space-y-4">
+        {
+          canais.map((c) => (
+            <a
+              href={c.href}
+              target={c.externo ? '_blank' : undefined}
+              rel={c.externo ? 'noopener' : undefined}
+              class="flex gap-4 rounded-card border border-border bg-white p-5 hover:border-blue"
+            >
+              <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-navy text-gold">
+                <Icone nome={c.icone} />
+              </span>
+              <span>
+                <span class="block font-heading font-bold text-navy">{c.titulo}</span>
+                <span class="mt-0.5 block break-words text-muted">{c.texto}</span>
+                {c.titulo === 'Endereço' && <span class="mt-1 block text-sm font-semibold text-blue">Abrir no Google Maps →</span>}
+              </span>
+            </a>
+          ))
+        }
+      </div>
+      <div id="contato">
+        <h2 class="mb-5 text-2xl font-extrabold text-navy">Envie seu pedido</h2>
+        <FormContato client:visible />
+      </div>
+    </div>
+  </section>
+</PaginaTexto>

@@ -1,0 +1,27 @@
+---
+// Páginas institucionais de texto: Sobre, Parceiros, Política, Termos.
+import Base from './Base.astro'
+import Breadcrumb from '../components/site/Breadcrumb.astro'
+
+interface Props {
+  url: string
+  seoTitulo: string
+  seoDescricao: string
+  h1: string
+  intro?: string
+  atualizado?: string
+}
+const p = Astro.props
+---
+
+<Base titulo={p.seoTitulo} descricao={p.seoDescricao}>
+  <section class="bg-navy text-white">
+    <div class="container-site py-14 sm:py-18">
+      <Breadcrumb itens={[{ nome: p.h1, url: p.url }]} />
+      <h1 class="mt-8 max-w-3xl text-4xl font-extrabold leading-tight sm:text-5xl">{p.h1}</h1>
+      {p.intro && <p class="mt-5 max-w-2xl text-lg text-white/80">{p.intro}</p>}
+      {p.atualizado && <p class="mt-5 text-sm text-white/60">Última atualização: {p.atualizado}</p>}
+    </div>
+  </section>
+  <slot />
+</Base>

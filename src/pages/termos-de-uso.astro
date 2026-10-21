@@ -1,0 +1,71 @@
+---
+// RASCUNHO para revisão de advogado (em especial o item de foro).
+import PaginaTexto from '../layouts/PaginaTexto.astro'
+import { empresa } from '../config'
+---
+
+<PaginaTexto
+  url="/termos-de-uso"
+  seoTitulo="Termos de uso | Dicoon Invest"
+  seoDescricao="Termos de uso do site da Dicoon Invest: natureza das informações e simulações, Área do Cliente, propriedade intelectual e responsabilidades."
+  h1="Termos de uso"
+  intro="Regras para usar o site da Dicoon Invest."
+  atualizado="20 de outubro de 2026"
+>
+  <section class="py-14 sm:py-18">
+    <div class="container-site">
+      <div class="texto max-w-3xl">
+        <h2 class="!mt-0">1. Aceitação</h2>
+        <p>Ao usar este site, você concorda com estes termos e com a <a href="/politica-de-privacidade">Política de privacidade</a>.</p>
+
+        <h2>2. Quem somos</h2>
+        <p>
+          O site pertence à <strong>{empresa.razaoSocial}</strong>, CNPJ {empresa.cnpj}. A Dicoon Invest atua como correspondente bancário e intermediadora: orienta, encaminha e
+          acompanha propostas junto a instituições parceiras. <strong>A Dicoon Invest não é instituição financeira e não concede crédito.</strong> A análise, a aprovação e as condições
+          de cada operação são definidas pela instituição responsável.
+        </p>
+
+        <h2>3. Informações do site</h2>
+        <p>
+          Os conteúdos deste site têm caráter informativo e não são oferta ou proposta de crédito, consórcio ou seguro. Condições, taxas, prazos e valores só são válidos quando
+          apresentados em proposta formal da instituição responsável.
+        </p>
+
+        <h2>4. Simuladores</h2>
+        <p>
+          Os resultados dos simuladores são estimativas ilustrativas, calculadas com os dados que você informa. Eles não incluem todos os custos de uma operação real e não garantem
+          aprovação, taxa ou valor de parcela.
+        </p>
+
+        <h2>5. Uso adequado</h2>
+        <ul>
+          <li>Informe dados verdadeiros e apenas seus, ou de quem autorizou você a enviá-los.</li>
+          <li>Não use o site para fraude, envio de conteúdo ilícito ou tentativas de acesso não autorizado.</li>
+        </ul>
+
+        <h2>6. Área do Cliente</h2>
+        <p>
+          O acesso é pessoal, feito com a sua conta Google e liberado somente após aprovação da Dicoon Invest. Você é responsável por manter a sua conta Google segura. A Dicoon Invest
+          pode suspender acessos em caso de uso indevido.
+        </p>
+
+        <h2>7. Propriedade intelectual</h2>
+        <p>A marca, o logotipo, os textos e o layout deste site pertencem à Dicoon Invest e não podem ser copiados sem autorização.</p>
+
+        <h2>8. Links externos</h2>
+        <p>O site tem links para serviços de terceiros, como WhatsApp e Google Maps, que seguem os próprios termos e políticas.</p>
+
+        <h2>9. Alterações</h2>
+        <p>Estes termos podem ser atualizados. A data da última atualização fica sempre no topo da página.</p>
+
+        <h2>10. Lei aplicável e foro</h2>
+        <p>
+          Estes termos seguem a legislação brasileira. Fica eleito o foro da comarca de Canoas/RS, ressalvado o direito do consumidor de propor ação no foro do seu domicílio.
+        </p>
+
+        <h2>11. Contato</h2>
+        <p>Dúvidas sobre estes termos: <a href={`mailto:${empresa.email}`}>{empresa.email}</a>.</p>
+      </div>
+    </div>
+  </section>
+</PaginaTexto>

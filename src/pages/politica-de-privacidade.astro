@@ -1,0 +1,98 @@
+---
+// RASCUNHO para revisão de advogado. Descreve o funcionamento real do site em 20/10/2026.
+// Pontos marcados para decisão: prazo de guarda, responsável (encarregado), foro.
+import PaginaTexto from '../layouts/PaginaTexto.astro'
+import { empresa } from '../config'
+---
+
+<PaginaTexto
+  url="/politica-de-privacidade"
+  seoTitulo="Política de privacidade | Dicoon Invest"
+  seoDescricao="Saiba quais dados a Dicoon Invest coleta, para que usa, com quem compartilha, por quanto tempo guarda e como você pode exercer seus direitos sobre eles."
+  h1="Política de privacidade"
+  intro="Como a Dicoon Invest trata os seus dados pessoais neste site e no atendimento."
+  atualizado="20 de outubro de 2026"
+>
+  <section class="py-14 sm:py-18">
+    <div class="container-site">
+      <div class="texto max-w-3xl">
+        <h2 class="!mt-0">1. Quem é responsável pelos seus dados</h2>
+        <p>
+          <strong>{empresa.razaoSocial}</strong>, CNPJ {empresa.cnpj}, com endereço na {empresa.endereco}, {empresa.bairroCidade} ("Dicoon Invest"). Para qualquer assunto sobre os
+          seus dados, fale com a gente pelo e-mail <a href={`mailto:${empresa.email}`}>{empresa.email}</a>.
+        </p>
+
+        <h2>2. Quais dados coletamos</h2>
+        <h3>Quando você usa o formulário ou fala com a gente</h3>
+        <ul>
+          <li>Nome, telefone ou e-mail, serviço de interesse e canal de atendimento preferido.</li>
+          <li>As informações que você mesmo enviar durante a conversa.</li>
+        </ul>
+        <p>
+          O formulário deste site não grava os seus dados: ao enviar, ele abre o WhatsApp ou o seu aplicativo de e-mail com a mensagem pronta, e você decide se envia.
+        </p>
+        <h3>Quando você contrata um serviço</h3>
+        <ul>
+          <li>Dados de identificação, contato, renda, documentos e, quando for o caso, informações sobre o imóvel, o veículo ou a empresa.</li>
+          <li>Esses dados são pedidos apenas quando necessários para a análise da operação que você solicitou.</li>
+        </ul>
+        <h3>Quando você navega no site</h3>
+        <ul>
+          <li>Registros técnicos de acesso, como endereço IP, data, hora e tipo de navegador, gerados pelo provedor de hospedagem por segurança e funcionamento.</li>
+          <li>Este site não usa cookies de publicidade nem ferramentas de análise de comportamento. Se isso mudar, esta política será atualizada e pediremos o seu consentimento quando necessário.</li>
+        </ul>
+        <h3>Área do Cliente</h3>
+        <ul>
+          <li>O acesso é feito com a sua conta Google. Recebemos o seu nome, e-mail e foto de perfil informados pelo Google, apenas para identificar o seu acesso.</li>
+        </ul>
+
+        <h2>3. Para que usamos os seus dados</h2>
+        <ul>
+          <li>Responder ao seu pedido de contato e fazer o atendimento que você solicitou.</li>
+          <li>Simular, encaminhar e acompanhar propostas de crédito, consórcio ou seguro junto às instituições parceiras.</li>
+          <li>Cumprir obrigações legais e regulatórias.</li>
+          <li>Manter a segurança do site e da Área do Cliente.</li>
+        </ul>
+        <p>Não vendemos os seus dados e não os usamos para finalidades diferentes das descritas aqui.</p>
+
+        <h2>4. Com quem compartilhamos</h2>
+        <ul>
+          <li><strong>Instituições financeiras, administradoras de consórcio e seguradoras parceiras</strong>, somente para a operação que você solicitou e com o seu conhecimento.</li>
+          <li><strong>Prestadores de serviço</strong> que nos ajudam a operar: hospedagem do site, e-mail corporativo, WhatsApp e banco de dados da Área do Cliente.</li>
+          <li><strong>Autoridades</strong>, quando houver obrigação legal ou ordem judicial.</li>
+        </ul>
+        <p>Alguns desses prestadores podem armazenar dados fora do Brasil, adotando medidas de segurança compatíveis com a legislação aplicável.</p>
+
+        <h2>5. Por quanto tempo guardamos</h2>
+        <ul>
+          <li>Pedidos de contato que não viraram atendimento: até 12 meses após o último contato.</li>
+          <li>Dados de clientes: pelo tempo necessário para a operação e, depois, pelo prazo exigido por obrigações legais e regulatórias.</li>
+        </ul>
+        <p>Depois desses prazos, os dados são excluídos ou anonimizados.</p>
+
+        <h2>6. Seus direitos</h2>
+        <p>Você pode, a qualquer momento, pedir:</p>
+        <ul>
+          <li>confirmação de que tratamos os seus dados e acesso a eles;</li>
+          <li>correção de dados incompletos, inexatos ou desatualizados;</li>
+          <li>anonimização, bloqueio ou eliminação de dados desnecessários ou tratados em desconformidade;</li>
+          <li>portabilidade dos dados;</li>
+          <li>informação sobre com quem os compartilhamos;</li>
+          <li>revogação do consentimento, quando ele for a base do tratamento.</li>
+        </ul>
+        <p>
+          Para isso, escreva para <a href={`mailto:${empresa.email}`}>{empresa.email}</a>. Responderemos dentro dos prazos legais. Você também pode apresentar reclamação à Autoridade
+          Nacional de Proteção de Dados (ANPD).
+        </p>
+
+        <h2>7. Segurança</h2>
+        <p>
+          Usamos conexão segura (HTTPS), controle de acesso por usuário na Área do Cliente e restringimos o acesso aos dados às pessoas que precisam deles para o atendimento.
+        </p>
+
+        <h2>8. Alterações desta política</h2>
+        <p>Esta política pode ser atualizada. A data da última atualização fica sempre no topo da página.</p>
+      </div>
+    </div>
+  </section>
+</PaginaTexto>

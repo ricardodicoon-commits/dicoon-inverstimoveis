@@ -130,7 +130,11 @@ export default function FormContato({ servicoInicial = '' }: { servicoInicial?: 
         <label className="flex items-start gap-3 text-sm text-muted">
           <input type="checkbox" checked={aviso} onChange={(e) => setAviso(e.target.checked)} className="mt-1 h-4 w-4 accent-navy" aria-describedby="e-aviso" />
           <span>
-            Concordo que a Dicoon Invest use estes dados apenas para responder ao meu pedido de atendimento. Nada fica gravado neste site.
+            Concordo que a Dicoon Invest use estes dados apenas para responder ao meu pedido de atendimento, conforme a{' '}
+            <a href="/politica-de-privacidade" target="_blank" className="font-semibold text-blue underline">
+              Política de privacidade
+            </a>
+            . Nada fica gravado neste site.
           </span>
         </label>
         {erros.aviso && <p id="e-aviso" className="mt-1 text-sm text-red-700">{erros.aviso}</p>}

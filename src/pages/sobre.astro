@@ -1,0 +1,71 @@
+---
+import PaginaTexto from '../layouts/PaginaTexto.astro'
+import Icone from '../components/site/Icone.astro'
+import SecaoContato from '../components/site/SecaoContato.astro'
+import { empresa } from '../config'
+
+// Rascunho: sem ano de fundação, números ou histórico até o Ricardo informar.
+const principios = [
+  { icone: 'conversa', titulo: 'Atendimento consultivo', texto: 'Antes de indicar qualquer produto, entendemos o seu momento, a sua renda e o seu objetivo.' },
+  { icone: 'lupa', titulo: 'Transparência', texto: 'Explicamos taxas, prazos, custos e riscos com clareza, antes de qualquer assinatura.' },
+  { icone: 'check', titulo: 'Acompanhamento', texto: 'Seguimos com você da simulação até a conclusão, com atualizações em cada etapa.' },
+  { icone: 'cadeado', titulo: 'Cuidado com os dados', texto: 'Pedimos só o necessário para o atendimento e tratamos as informações com sigilo.' },
+]
+---
+
+<PaginaTexto
+  url="/sobre"
+  seoTitulo="Sobre a Dicoon Invest | Correspondente bancário em Canoas/RS"
+  seoDescricao="Conheça a Dicoon Invest: crédito, consórcios e seguros com atendimento consultivo em Canoas/RS. Veja como trabalhamos, onde estamos e como falar com a gente."
+  h1="Sobre a Dicoon Invest"
+  intro="Crédito, consórcios e seguros em um só lugar, com atendimento próximo para decisões financeiras importantes."
+>
+  <section class="py-16 sm:py-20">
+    <div class="container-site grid gap-12 lg:grid-cols-[1.3fr_1fr]">
+      <div class="texto max-w-2xl">
+        <h2 class="!mt-0">Quem somos</h2>
+        <p>
+          A Dicoon Invest é uma empresa de Canoas/RS que atua como correspondente bancário e intermediadora de soluções financeiras. Ajudamos pessoas e empresas a encontrar o
+          crédito, o consórcio ou o seguro mais adequado ao seu momento.
+        </p>
+        <p>
+          Trabalhamos com diversas instituições financeiras e seguradoras parceiras. Isso nos permite comparar alternativas e apresentar opções, em vez de oferecer um único
+          produto. A análise e a aprovação de cada operação são sempre feitas pela instituição responsável.
+        </p>
+        <h2>Como trabalhamos</h2>
+        <p>
+          Cada atendimento começa por uma conversa. Entendemos o que você precisa, simulamos cenários, explicamos as condições e só então seguimos com a proposta. Durante todo o
+          processo você sabe em que etapa está e o que vem a seguir.
+        </p>
+      </div>
+      <aside class="h-fit rounded-card bg-navy p-8 text-white">
+        <p class="font-heading text-lg font-bold">Dados da empresa</p>
+        <dl class="mt-5 space-y-4 text-sm">
+          <div><dt class="text-white/60">Razão social</dt><dd class="mt-0.5">{empresa.razaoSocial}</dd></div>
+          <div><dt class="text-white/60">CNPJ</dt><dd class="mt-0.5">{empresa.cnpj}</dd></div>
+          <div><dt class="text-white/60">Endereço</dt><dd class="mt-0.5">{empresa.endereco}, {empresa.bairroCidade}</dd></div>
+          <div><dt class="text-white/60">Contato</dt><dd class="mt-0.5">{empresa.telefone} · {empresa.email}</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </section>
+
+  <section class="border-y border-border bg-white py-16 sm:py-20">
+    <div class="container-site">
+      <h2 class="text-2xl font-extrabold text-navy sm:text-3xl">O que guia o nosso trabalho</h2>
+      <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          principios.map((p) => (
+            <div class="rounded-card border border-border bg-bg p-6">
+              <Icone nome={p.icone} class="h-8 w-8 text-blue" />
+              <h3 class="mt-4 font-bold text-navy">{p.titulo}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-muted">{p.texto}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <SecaoContato />
+</PaginaTexto>

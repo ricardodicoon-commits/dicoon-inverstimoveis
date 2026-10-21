@@ -23,8 +23,9 @@ import { servicos } from '../../data/servicos'
       <ul class="mt-4 space-y-2 text-sm">
         <li><a href="/para-voce" class="hover:text-gold">Soluções para você</a></li>
         <li><a href="/empresas" class="hover:text-gold">Soluções para empresas</a></li>
-        <li><a href="/#sobre" class="hover:text-gold">Sobre a Dicoon</a></li>
-        <li><a href="/#parceiros" class="hover:text-gold">Parceiros</a></li>
+        <li><a href="/sobre" class="hover:text-gold">Sobre a Dicoon</a></li>
+        <li><a href="/parceiros" class="hover:text-gold">Parceiros</a></li>
+        <li><a href="/contato" class="hover:text-gold">Contato</a></li>
         <li><a href="/#duvidas" class="hover:text-gold">Dúvidas frequentes</a></li>
         <li><a href="/app" class="hover:text-gold">Área do Cliente</a></li>
       </ul>
@@ -50,7 +51,11 @@ import { servicos } from '../../data/servicos'
   <div class="border-t border-white/10">
     <div class="container-site flex flex-col gap-2 py-6 text-xs text-white/60 sm:flex-row sm:justify-between">
       <p>{empresa.razaoSocial} · CNPJ {empresa.cnpj}</p>
-      <p>© {new Date().getFullYear()} Dicoon Invest. Todos os direitos reservados.</p>
+      <p class="flex flex-wrap gap-x-4 gap-y-1">
+        <a href="/politica-de-privacidade" class="hover:text-gold">Política de privacidade</a>
+        <a href="/termos-de-uso" class="hover:text-gold">Termos de uso</a>
+        <span>© {new Date().getFullYear()} Dicoon Invest. Todos os direitos reservados.</span>
+      </p>
     </div>
   </div>
 </footer>

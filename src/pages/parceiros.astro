@@ -1,0 +1,63 @@
+---
+import PaginaTexto from '../layouts/PaginaTexto.astro'
+import Icone from '../components/site/Icone.astro'
+import { linkWhatsApp } from '../config'
+
+// Sem nomes ou logos de instituições, a pedido (a Dicoon trabalha com várias).
+const passos = [
+  { titulo: 'Você conta o que precisa', texto: 'Entendemos o seu objetivo e o seu perfil.' },
+  { titulo: 'Comparamos as instituições', texto: 'Levamos a proposta às parceiras que atendem aquele tipo de operação.' },
+  { titulo: 'Você escolhe', texto: 'Apresentamos as alternativas e você decide com informação.' },
+  { titulo: 'A instituição analisa e contrata', texto: 'A análise, a aprovação e o contrato são feitos pela instituição escolhida.' },
+]
+---
+
+<PaginaTexto
+  url="/parceiros"
+  seoTitulo="Instituições parceiras e parcerias | Dicoon Invest"
+  seoDescricao="Saiba como a Dicoon Invest trabalha com diversas instituições financeiras e seguradoras parceiras e como corretores e empresas podem ser parceiros."
+  h1="Parceiros"
+  intro="Trabalhamos com diversas instituições financeiras e seguradoras para comparar opções e buscar as melhores condições disponíveis para cada perfil."
+>
+  <section class="py-16 sm:py-20">
+    <div class="container-site">
+      <h2 class="text-2xl font-extrabold text-navy sm:text-3xl">Como funciona a comparação entre instituições</h2>
+      <ol class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          passos.map((p, n) => (
+            <li class="rounded-card border border-border bg-white p-6">
+              <span class="flex h-10 w-10 items-center justify-center rounded-full bg-navy font-heading font-bold text-gold">{n + 1}</span>
+              <h3 class="mt-4 font-bold text-navy">{p.titulo}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-muted">{p.texto}</p>
+            </li>
+          ))
+        }
+      </ol>
+      <div class="texto mt-10 max-w-3xl">
+        <p>
+          <strong>Transparência:</strong> em toda proposta você sabe qual é a instituição responsável pela operação e quais são as condições oferecidas por ela.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-navy py-16 text-white sm:py-20">
+    <div class="container-site grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-gold">Seja parceiro</p>
+        <h2 class="mt-2 text-3xl font-extrabold sm:text-4xl">É corretor de imóveis ou tem uma empresa?</h2>
+        <p class="mt-4 text-white/80">
+          Oferecemos assessoria para o financiamento imobiliário dos seus clientes, com acompanhamento da proposta do início ao fim. Vamos conversar sobre como trabalhar juntos.
+        </p>
+      </div>
+      <a
+        href={linkWhatsApp('Olá, quero conversar sobre ser parceiro da Dicoon Invest.')}
+        target="_blank"
+        rel="noopener"
+        class="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-7 py-4 font-bold text-navy hover:bg-gold-dark"
+      >
+        <Icone nome="maleta" class="h-5 w-5" /> Quero ser parceiro
+      </a>
+    </div>
+  </section>
+</PaginaTexto>
