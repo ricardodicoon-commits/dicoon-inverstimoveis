@@ -18,7 +18,7 @@ export const empresa = {
 // Vazios = nada é carregado e o aviso de cookies não aparece.
 export const rastreamento = {
   googleAnalytics: 'G-50TXLG4V23', // propriedade "Dicoon Invest - Site", fluxo "Site Dicoon Invest"
-  pixelMeta: '', // número do conjunto de dados (Pixel)
+  pixelMeta: '1403847860332992', // "Pixel de Paulo Ricardo Schimumeck", conta de anúncios 2368456383335072
 }
 
 export function linkWhatsApp(mensagem = 'Olá, quero conhecer as soluções da Dicoon Invest.') {
