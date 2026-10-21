@@ -20,6 +20,9 @@ interface Props {
   destaques: { icone: string; titulo: string; texto: string }[]
   imagem?: ImageMetadata
   altImagem?: string
+  // Topo mais baixo, para o conteúdo logo abaixo (ex.: simulador) caber na primeira tela.
+  compacto?: boolean
+  chamada?: { texto: string; href: string }
 }
 const p = Astro.props
 ---
@@ -32,13 +35,21 @@ const p = Astro.props
       )
     }
     <div class="absolute inset-0 bg-gradient-to-r from-navy via-navy/90 to-navy/50"></div>
-    <div class="container-site relative py-14 sm:py-20">
+    <div class:list={['container-site relative', p.compacto ? 'py-8 sm:py-10' : 'py-14 sm:py-20']}>
       <Breadcrumb itens={[{ nome: p.h1, url: p.url }]} />
-      <h1 class="mt-8 max-w-3xl text-4xl font-extrabold leading-tight sm:text-5xl">{p.h1}</h1>
-      <p class="mt-5 max-w-2xl text-lg text-white/80">{p.intro}</p>
-      <a href="#contato" class="mt-8 inline-block rounded-full bg-gold px-7 py-3.5 font-bold text-navy hover:bg-gold-dark">Fale com um especialista</a>
+      <h1 class:list={['max-w-3xl text-4xl font-extrabold leading-tight sm:text-5xl', p.compacto ? 'mt-5' : 'mt-8']}>{p.h1}</h1>
+      <p class:list={['max-w-2xl text-lg text-white/80', p.compacto ? 'mt-3' : 'mt-5']}>{p.intro}</p>
+      <a
+        href={p.chamada?.href ?? '#contato'}
+        class:list={['inline-block rounded-full bg-gold px-7 py-3.5 font-bold text-navy hover:bg-gold-dark', p.compacto ? 'mt-6' : 'mt-8']}
+      >
+        {p.chamada?.texto ?? 'Fale com um especialista'}
+      </a>
     </div>
   </section>
+
+  <!-- Conteúdo da página logo após o topo (ex.: simulador na página Crédito). -->
+  <slot />
 
   <section class="py-16 sm:py-20">
     <div class="container-site">

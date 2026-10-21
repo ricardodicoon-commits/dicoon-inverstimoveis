@@ -1,6 +1,7 @@
 ---
 import PaginaHub from '../layouts/PaginaHub.astro'
 import heroImg from '../assets/hero-cidade.jpg'
+import SimuladorFinanciamento from '../components/site/SimuladorFinanciamento'
 import { servicosCredito } from '../data/servicos'
 ---
 
@@ -13,9 +14,21 @@ import { servicosCredito } from '../data/servicos'
   tituloLista="Escolha o tipo de crédito"
   itens={servicosCredito}
   imagem={heroImg}
+  compacto
+  chamada={{ texto: 'Simular agora', href: '#simulador' }}
   destaques={[
     { icone: 'lupa', titulo: 'Comparação de opções', texto: 'Levamos a sua proposta a diferentes instituições para você escolher com informação.' },
     { icone: 'conversa', titulo: 'Tudo explicado', texto: 'Entrada, prazo e parcelas apresentados com clareza antes de qualquer assinatura.' },
     { icone: 'check', titulo: 'Acompanhamento', texto: 'Seguimos com você da simulação até a assinatura do contrato.' },
   ]}
-/>
+>
+  <section id="simulador" class="scroll-mt-20 border-b border-border bg-white py-8 sm:py-10">
+    <div class="container-site">
+      <h2 class="text-2xl font-extrabold text-navy sm:text-3xl">Simule seu financiamento</h2>
+      <p class="mt-2 max-w-3xl text-muted">Compare na hora as parcelas SAC e Price, com a taxa média de mercado do Banco Central.</p>
+      <div class="mt-5">
+        <SimuladorFinanciamento client:visible />
+      </div>
+    </div>
+  </section>
+</PaginaHub>
