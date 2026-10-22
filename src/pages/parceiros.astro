@@ -2,7 +2,7 @@
 import PaginaTexto from '../layouts/PaginaTexto.astro'
 import Icone from '../components/site/Icone.astro'
 import { linkWhatsApp } from '../config'
-import { parceiros } from '../data/parceiros'
+import { parceiros, consorcios } from '../data/parceiros'
 
 // Logos aprovadas pelo Ricardo em 2026-10-21 (mesma lista da home). A descrição para o Google
 // fica genérica de propósito: não citar instituições por nome.
@@ -35,7 +35,7 @@ const passos = [
             <ul class={`mt-6 grid gap-3 sm:gap-4 ${g.colunas}`}>
               {g.itens.map((p) => (
                 <li>
-                  <figure class="flex h-full flex-col items-center justify-between gap-3 rounded-[0.875rem] border border-border bg-white p-4 text-center">
+                  <figure class="flex h-full flex-col items-center justify-between gap-3 rounded-[1.5rem] cartao-ouro bg-white p-4 text-center">
                     <div class="flex h-16 w-full items-center justify-center">
                       <img
                         src={`/img/parceiros/${p.arquivo}.webp`}
@@ -55,6 +55,45 @@ const passos = [
           </div>
         ))
       }
+
+      <div class="mt-14">
+        <h2 class="text-2xl font-extrabold text-navy sm:text-3xl">Administradoras de consórcio</h2>
+        <ul class="mt-6 grid max-w-4xl grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+          {
+            consorcios.map((c) => (
+              <li>
+                <figure class="flex h-full flex-col items-center justify-between gap-2 rounded-[1.5rem] cartao-ouro bg-white p-3 text-center">
+                  <div class="flex h-11 w-full items-center justify-center">
+                    {c.arquivo ? (
+                      <img
+                        src={`/img/parceiros/${c.arquivo}.webp`}
+                        alt={c.alt}
+                        width={c.largura}
+                        height={c.altura}
+                        loading="lazy"
+                        decoding="async"
+                        class="max-h-11 w-auto max-w-[75%] object-contain"
+                      />
+                    ) : (
+                      <span class="font-heading text-base font-extrabold leading-tight text-navy">{c.nome}</span>
+                    )}
+                  </div>
+                  {c.arquivo && <figcaption class="text-xs font-semibold text-muted">{c.nome}</figcaption>}
+                  <a
+                    href={linkWhatsApp(`Olá! Quero simular um consórcio com a administradora ${c.nome}.`)}
+                    target="_blank"
+                    rel="noopener"
+                    class="mt-1 rounded-full bg-navy px-4 py-2 text-xs font-bold text-white hover:bg-blue"
+                  >
+                    Simular consórcio
+                  </a>
+                </figure>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
       <p class="mt-10 max-w-3xl text-sm text-muted">
         As instituições apresentadas são parceiras conforme disponibilidade e autorização comercial. A aprovação, as taxas, as coberturas e as condições dependem da análise de cada instituição.
       </p>

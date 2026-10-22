@@ -34,3 +34,20 @@ export const parceiros: Parceiro[] = [
   { nome: 'Ezze Seguros', arquivo: 'ezze', alt: 'Logo da Ezze Seguros', largura: 77, altura: 45, tipo: 'seguradora' },
   { nome: 'Bradesco Seguros', arquivo: 'bradesco-seguros', alt: 'Logo da Bradesco Seguros', largura: 91, altura: 65, tipo: 'seguradora' },
 ]
+
+export type Consorcio = {
+  nome: string
+  alt: string
+  // Sem arquivo: o cartão mostra o nome no lugar da logo até chegar a imagem.
+  arquivo?: string
+  largura?: number
+  altura?: number
+}
+
+// Administradoras de consórcio e logos enviadas pelo Ricardo em 2026-10-21.
+export const consorcios: Consorcio[] = [
+  { nome: 'Rodobens Consórcio', alt: 'Logo da Rodobens Consórcio', arquivo: 'rodobens', largura: 339, altura: 120 },
+  { nome: 'Porto Seguro Consórcio', alt: 'Logo da Porto Seguro Consórcio', arquivo: 'porto-seguro', largura: 72, altura: 73 },
+  { nome: 'Consórcio Servopa', alt: 'Logo do Consórcio Servopa', arquivo: 'servopa', largura: 333, altura: 89 },
+  { nome: 'Consórcio Banrisul', alt: 'Logo do Consórcio Banrisul', arquivo: 'banrisul', largura: 303, altura: 59 },
+]
