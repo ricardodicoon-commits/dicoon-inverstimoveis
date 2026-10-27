@@ -34,7 +34,7 @@ export function erroAmigavel(e: unknown) {
   if (/rate limit|too many/i.test(msg)) return 'Muitas tentativas. Aguarde alguns minutos e tente de novo.'
   if (/should be different/i.test(msg)) return 'A nova senha precisa ser diferente da atual.'
   if (/weak|at least/i.test(msg)) return 'Senha fraca. Use pelo menos 8 caracteres, misturando letras e números.'
-  return msg
+  return 'Não foi possível concluir a operação. Tente novamente.'
 }
 
 export const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
