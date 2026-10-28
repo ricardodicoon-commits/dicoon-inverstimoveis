@@ -42,6 +42,19 @@ export interface Negociacao {
   cliente?: { nome_completo: string } | null
 }
 
-export const etapas = ['Prospecção', 'Simulação', 'Documentação', 'Em análise', 'Aprovado', 'Contratado', 'Perdido']
+// Valores aceitos pelo banco (enum negotiation_stage_type) e o nome mostrado na tela.
+export const etapas = [
+  { valor: 'novo_contato', rotulo: 'Novo contato' },
+  { valor: 'analise', rotulo: 'Em análise' },
+  { valor: 'proposta', rotulo: 'Proposta' },
+  { valor: 'aprovacao', rotulo: 'Aprovação' },
+  { valor: 'concluido', rotulo: 'Concluído' },
+]
+
+export const etapaFinal = 'concluido'
+
+export function rotuloEtapa(valor: string) {
+  return etapas.find((e) => e.valor === valor)?.rotulo ?? valor
+}
 
 export const statusCliente = ['Ativo', 'Em atendimento', 'Inativo']

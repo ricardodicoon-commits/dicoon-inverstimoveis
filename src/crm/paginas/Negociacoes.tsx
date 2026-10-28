@@ -72,13 +72,13 @@ export function Negociacoes() {
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-4">
           {etapas.map((etapa) => {
-            const itens = data.filter((n) => n.etapa === etapa)
+            const itens = data.filter((n) => n.etapa === etapa.valor)
             const soma = itens.reduce((s, n) => s + (n.valor_estimado ?? 0), 0)
             return (
-              <section key={etapa} className="w-72 shrink-0 rounded-2xl border border-line bg-coal p-3">
+              <section key={etapa.valor} className="w-72 shrink-0 rounded-2xl border border-line bg-coal p-3">
                 <header className="mb-3 px-1">
                   <p className="text-sm font-bold text-white">
-                    {etapa} <span className="text-muted">({itens.length})</span>
+                    {etapa.rotulo} <span className="text-muted">({itens.length})</span>
                   </p>
                   {soma > 0 && <p className="text-xs text-gold">{moeda.format(soma)}</p>}
                 </header>
@@ -99,7 +99,9 @@ export function Negociacoes() {
                         aria-label="Mudar etapa"
                       >
                         {etapas.map((et) => (
-                          <option key={et}>{et}</option>
+                          <option key={et.valor} value={et.valor}>
+                            {et.rotulo}
+                          </option>
                         ))}
                       </select>
                     </article>
@@ -146,7 +148,7 @@ function FormNegociacao({
 }) {
   const [clienteId, setClienteId] = useState(negociacao?.cliente_id ?? '')
   const [valor, setValor] = useState(negociacao?.valor_estimado?.toString() ?? '')
-  const [etapa, setEtapa] = useState(negociacao?.etapa ?? etapas[0])
+  const [etapa, setEtapa] = useState(negociacao?.etapa ?? etapas[0].valor)
   const [obs, setObs] = useState(negociacao?.observacoes ?? '')
 
   const clientes = useQuery({
@@ -189,7 +191,9 @@ function FormNegociacao({
           <Campo rotulo="Etapa">
             <select className={estiloCampo} value={etapa} onChange={(e) => setEtapa(e.target.value)}>
               {etapas.map((et) => (
-                <option key={et}>{et}</option>
+                <option key={et.valor} value={et.valor}>
+                  {et.rotulo}
+                </option>
               ))}
             </select>
           </Campo>

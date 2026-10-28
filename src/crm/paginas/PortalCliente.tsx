@@ -5,7 +5,7 @@ import { empresa } from '../../config'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth'
 import { erroAmigavel, moeda, useAoVivo } from '../dados'
-import { etapas, type Cliente, type Negociacao } from '../tipos'
+import { etapas, rotuloEtapa, type Cliente, type Negociacao } from '../tipos'
 import { TrocarSenha } from '../TrocarSenha'
 import { Aviso, Carregando, Vazio } from '../ui'
 
@@ -15,8 +15,6 @@ interface Responsavel {
   email: string | null
 }
 
-// Etapas mostradas ao cliente, em ordem ("Perdido" aparece só como situação).
-const caminho = etapas.filter((e) => e !== 'Perdido')
 
 function linkWhats(telefone: string | null, nome: string) {
   const digitos = (telefone ?? '').replace(/\D/g, '')
@@ -86,24 +84,21 @@ export function PortalCliente() {
               ) : (
                 <div className="space-y-6">
                   {negociacoes.map((n) => {
-                    const perdido = n.etapa === 'Perdido'
-                    const atual = caminho.indexOf(n.etapa)
+                    const atual = etapas.findIndex((e) => e.valor === n.etapa)
                     return (
                       <article key={n.id}>
                         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                          <p className="font-semibold text-white">{perdido ? 'Atendimento encerrado' : n.etapa}</p>
+                          <p className="font-semibold text-white">{rotuloEtapa(n.etapa)}</p>
                           {n.valor_estimado != null && <p className="text-sm text-gold">{moeda.format(n.valor_estimado)}</p>}
                         </div>
-                        {!perdido && (
-                          <ol className="grid grid-cols-6 gap-1" aria-label="Etapas">
-                            {caminho.map((etapa, i) => (
-                              <li key={etapa} title={etapa}>
-                                <div className={`h-1.5 rounded-full ${i <= atual ? 'bg-gold' : 'bg-white/10'}`} />
-                                <p className={`mt-1 hidden text-[10px] sm:block ${i === atual ? 'text-white' : 'text-muted'}`}>{etapa}</p>
-                              </li>
-                            ))}
-                          </ol>
-                        )}
+                        <ol className="grid grid-cols-5 gap-1" aria-label="Etapas">
+                          {etapas.map((etapa, i) => (
+                            <li key={etapa.valor} title={etapa.rotulo}>
+                              <div className={`h-1.5 rounded-full ${i <= atual ? 'bg-gold' : 'bg-white/10'}`} />
+                              <p className={`mt-1 hidden text-[10px] sm:block ${i === atual ? 'text-white' : 'text-muted'}`}>{etapa.rotulo}</p>
+                            </li>
+                          ))}
+                        </ol>
                       </article>
                     )
                   })}
