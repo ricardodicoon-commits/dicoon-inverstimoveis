@@ -6,6 +6,8 @@ import { supabaseConfigurado } from '../lib/supabase'
 import { AuthProvider, useAuth } from './auth'
 import { Layout } from './Layout'
 import { Aguardando } from './paginas/Aguardando'
+import { Atendimento } from './paginas/Atendimento'
+import { Integracoes } from './paginas/Integracoes'
 import { Clientes } from './paginas/Clientes'
 import { Entrada } from './paginas/Entrada'
 import { Equipe } from './paginas/Equipe'
@@ -66,9 +68,11 @@ function Portao() {
     <Routes>
       <Route path="/app" element={<Layout />}>
         <Route index element={<Painel />} />
+        <Route path="atendimento" element={<Atendimento />} />
         <Route path="clientes" element={<Clientes />} />
         <Route path="negociacoes" element={<Negociacoes />} />
         {ehAdmin && <Route path="equipe" element={<Equipe />} />}
+        {ehAdmin && <Route path="integracoes" element={<Integracoes />} />}
         <Route path="*" element={<Navigate to="/app" replace />} />
       </Route>
     </Routes>

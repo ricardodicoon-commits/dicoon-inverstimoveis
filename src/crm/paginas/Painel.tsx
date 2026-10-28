@@ -37,14 +37,18 @@ export function Painel() {
   const { data, isPending } = useQuery({
     queryKey: ['painel', ehAdmin],
     queryFn: async () => {
-      const [clientes, negociacoes, equipe] = await Promise.all([
+      const [leads, tarefas, clientes, negociacoes, equipe] = await Promise.all([
+        linhas<{ created_at: string; status: string }>('leads', 'created_at, status'),
+        linhas<{ status: string; data_tarefa: string }>('tarefas', 'status, data_tarefa'),
         linhas<{ created_at: string }>('clientes', 'created_at'),
         linhas<{ created_at: string; etapa: string; valor_estimado: number | null }>('negociacoes', 'created_at, etapa, valor_estimado'),
         ehAdmin ? linhas<{ aprovado: boolean; ativo: boolean }>('profiles', 'aprovado, ativo') : Promise.resolve([]),
       ])
-      return { clientes, negociacoes, equipe }
+      return { leads, tarefas, clientes, negociacoes, equipe }
     },
   })
+  useAoVivo('leads', ['painel'])
+  useAoVivo('tarefas', ['painel'])
   useAoVivo('clientes', ['painel'])
   useAoVivo('negociacoes', ['painel'])
 
@@ -58,6 +62,9 @@ export function Painel() {
     )
   }
 
+  const datasLeads = data.leads.map((l) => l.created_at)
+  const pendentes = data.tarefas.filter((t) => t.status === 'pendente')
+  const hoje = new Date().toISOString().slice(0, 10)
   const datasClientes = data.clientes.map((c) => c.created_at)
   const datasNegociacoes = data.negociacoes.map((n) => n.created_at)
   const abertas = data.negociacoes.filter((n) => n.etapa !== etapaFinal)
@@ -68,6 +75,18 @@ export function Painel() {
     <>
       <Cabecalho titulo={`Olá, ${nome}`} />
       <div className="grid gap-4 lg:grid-cols-2">
+        <CartaoAba
+          titulo="Atendimento"
+          link="/app/atendimento"
+          numeros={[
+            { rotulo: 'Leads novos sem atendimento', valor: data.leads.filter((l) => l.status === 'novo').length },
+            { rotulo: 'Tarefas pendentes', valor: pendentes.length },
+            { rotulo: 'Atrasadas', valor: pendentes.filter((t) => t.data_tarefa < hoje).length },
+          ]}
+        >
+          <Semanas valores={porSemana(datasLeads)} legenda="Leads por semana" />
+        </CartaoAba>
+
         <CartaoAba
           titulo="Clientes"
           link="/app/clientes"

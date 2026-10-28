@@ -18,7 +18,7 @@ export function Negociacoes() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('negociacoes')
-        .select('*, cliente:clientes(nome_completo)')
+        .select('*, cliente:clientes(nome_completo), lead:leads(nome)')
         .order('updated_at', { ascending: false })
         .limit(500)
       if (error) throw error
@@ -86,7 +86,7 @@ export function Negociacoes() {
                   {itens.map((n) => (
                     <article key={n.id} className="rounded-xl border border-line bg-ink p-3">
                       <button onClick={() => setEditando(n)} className="w-full text-left">
-                        <p className="font-semibold text-white">{n.cliente?.nome_completo ?? 'Cliente'}</p>
+                        <p className="font-semibold text-white">{n.cliente?.nome_completo ?? n.lead?.nome ?? 'Cliente'}</p>
                         {n.valor_estimado != null && <p className="text-sm text-gold">{moeda.format(n.valor_estimado)}</p>}
                         {n.observacoes && <p className="mt-1 line-clamp-2 text-xs text-muted">{n.observacoes}</p>}
                       </button>
@@ -163,7 +163,7 @@ function FormNegociacao({
   function enviar(e: FormEvent) {
     e.preventDefault()
     aoSalvar({
-      cliente_id: clienteId,
+      cliente_id: clienteId || null,
       valor_estimado: valor ? Number(valor.replace(/\./g, '').replace(',', '.')) : null,
       etapa,
       observacoes: obs || null,
@@ -174,8 +174,9 @@ function FormNegociacao({
     <Modal titulo={!negociacao ? 'Nova negociação' : somenteLeitura ? 'Negociação' : 'Editar negociação'} aoFechar={aoFechar}>
       <form onSubmit={enviar} className="grid gap-4">
         <fieldset disabled={somenteLeitura} className="contents">
-        <Campo rotulo="Cliente *">
-          <select className={estiloCampo} value={clienteId} onChange={(e) => setClienteId(e.target.value)} required>
+        {negociacao?.lead && <p className="text-sm text-muted">Lead: <span className="font-semibold text-white">{negociacao.lead.nome}</span></p>}
+        <Campo rotulo={negociacao?.lead_id ? 'Cliente (quando virar cliente)' : 'Cliente *'}>
+          <select className={estiloCampo} value={clienteId} onChange={(e) => setClienteId(e.target.value)} required={!negociacao?.lead_id}>
             <option value="">{clientes.isPending ? 'Carregando…' : 'Selecione o cliente'}</option>
             {clientes.data?.map((c) => (
               <option key={c.id} value={c.id}>

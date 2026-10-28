@@ -11,9 +11,15 @@ export function Layout() {
 
   const links = [
     { para: '/app', rotulo: 'Painel', fim: true },
+    { para: '/app/atendimento', rotulo: 'Atendimento' },
     { para: '/app/clientes', rotulo: 'Clientes' },
     { para: '/app/negociacoes', rotulo: 'Negociações' },
-    ...(ehAdmin ? [{ para: '/app/equipe', rotulo: 'Equipe' }] : []),
+    ...(ehAdmin
+      ? [
+          { para: '/app/equipe', rotulo: 'Equipe' },
+          { para: '/app/integracoes', rotulo: 'Integrações' },
+        ]
+      : []),
   ]
 
   const menu = (
