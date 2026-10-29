@@ -47,7 +47,7 @@ export function Layout() {
     <nav className="flex flex-col gap-1">
       {grupos.map((g, i) => (
         <div key={i} className="flex flex-col gap-1">
-          {g.titulo && <p className="mt-4 px-4 text-[11px] font-bold uppercase tracking-widest text-muted">{g.titulo}</p>}
+          {g.titulo && <p className="mt-4 mb-1 px-3 text-left text-[11px] font-bold uppercase tracking-widest text-muted">{g.titulo}</p>}
           {g.links.map((l) => (
             <NavLink
               key={l.para}
@@ -55,7 +55,7 @@ export function Layout() {
               end={l.fim}
               onClick={() => setAberto(false)}
               className={({ isActive }) =>
-                `rounded-lg px-4 py-2.5 text-sm font-semibold ${isActive ? 'bg-gold/15 text-gold' : 'text-white/80 hover:bg-white/5 hover:text-white'}`
+                `block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold ${isActive ? 'bg-gold/15 text-gold' : 'text-white/80 hover:bg-white/5 hover:text-white'}`
               }
             >
               {l.rotulo}
@@ -83,18 +83,19 @@ export function Layout() {
 
   return (
     <div className="min-h-screen lg:flex">
-      <aside className="hidden w-60 shrink-0 flex-col justify-between border-r border-line bg-coal p-4 lg:flex lg:sticky lg:top-0 lg:h-screen">
-        <div>
-          <div className="mb-6 flex items-center gap-2">
-            <a href="/" className="text-lg text-muted hover:text-gold" aria-label="Voltar ao site">
-              ←
-            </a>
-            <Logo />
-            <span className="text-xs font-bold tracking-widest text-gold">APP</span>
-          </div>
+      {/* Logo fixo em cima, "Trocar senha / Sair" fixo embaixo; só o menu rola quando não cabe. */}
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-line bg-coal p-4 lg:sticky lg:top-0 lg:flex lg:h-screen">
+        <div className="mb-4 flex shrink-0 items-center gap-2">
+          <a href="/" className="text-lg text-muted hover:text-gold" aria-label="Voltar ao site">
+            ←
+          </a>
+          <Logo />
+          <span className="text-xs font-bold tracking-widest text-gold">APP</span>
+        </div>
+        <div className="-mr-2 min-h-0 flex-1 overflow-y-auto pr-2 [scrollbar-color:rgba(200,164,93,0.45)_transparent] [scrollbar-width:thin]">
           {menu}
         </div>
-        {rodape}
+        <div className="mt-4 shrink-0">{rodape}</div>
       </aside>
 
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-line bg-coal px-4 lg:hidden">
@@ -109,7 +110,7 @@ export function Layout() {
         </button>
       </header>
       {aberto && (
-        <div className="space-y-4 border-b border-line bg-coal p-4 lg:hidden">
+        <div className="sticky top-16 z-20 max-h-[calc(100dvh-4rem)] space-y-4 overflow-y-auto border-b border-line bg-coal p-4 [scrollbar-width:thin] lg:hidden">
           {menu}
           {rodape}
         </div>
