@@ -64,6 +64,15 @@ export const etapas = [
 
 export const etapaFinal = 'concluido'
 
+// Cor de cada etapa no kanban e nos gráficos (nomes dos tons de ui.tsx).
+export const tomEtapa: Record<string, 'azul' | 'ambar' | 'roxo' | 'ciano' | 'verde'> = {
+  novo_contato: 'azul',
+  analise: 'ambar',
+  proposta: 'roxo',
+  aprovacao: 'ciano',
+  concluido: 'verde',
+}
+
 export function rotuloEtapa(valor: string) {
   return etapas.find((e) => e.valor === valor)?.rotulo ?? valor
 }
