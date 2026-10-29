@@ -131,6 +131,55 @@ export const rotuloConexao: Record<Canal['conexao'], string> = {
   erro: 'Com erro',
 }
 
+// Agenda (supabase/06-secretaria-agenda.sql).
+
+export const categoriasCompromisso = [
+  { valor: 'reuniao_comercial', rotulo: 'Reunião comercial' },
+  { valor: 'visita_imobiliaria', rotulo: 'Visita a imobiliária' },
+  { valor: 'reuniao_com_construtora', rotulo: 'Reunião com construtora' },
+  { valor: 'reuniao_com_parceiro', rotulo: 'Reunião com parceiro' },
+  { valor: 'atendimento_agendado', rotulo: 'Atendimento agendado' },
+  { valor: 'compromisso_pessoal', rotulo: 'Pessoal' },
+  { valor: 'tarefa_externa', rotulo: 'Tarefa externa' },
+  { valor: 'outros', rotulo: 'Outros' },
+]
+
+export const statusCompromisso = [
+  { valor: 'a_confirmar', rotulo: 'A confirmar' },
+  { valor: 'confirmado', rotulo: 'Confirmado' },
+  { valor: 'reagendado', rotulo: 'Reagendado' },
+  { valor: 'cancelado', rotulo: 'Cancelado' },
+  { valor: 'realizado', rotulo: 'Realizado' },
+]
+
+export const prioridades = [
+  { valor: 'baixa', rotulo: 'Baixa' },
+  { valor: 'media', rotulo: 'Média' },
+  { valor: 'alta', rotulo: 'Alta' },
+  { valor: 'urgente', rotulo: 'Urgente' },
+]
+
+export interface Compromisso {
+  id: string
+  titulo: string
+  categoria: string
+  inicio: string
+  fim: string
+  local: string | null
+  endereco: string | null
+  participantes: string | null
+  objetivo: string | null
+  observacoes: string | null
+  resultado: string | null
+  status: string
+  prioridade: string
+  lembrete_minutos: number | null
+  negociacao_id: string | null
+  responsavel_id: string
+  criado_por: string | null
+  responsavel?: { nome: string | null; email: string } | null
+}
+
 export interface RespostaAprovada {
   id: string
   atalho: string

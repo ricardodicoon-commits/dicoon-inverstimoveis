@@ -5,6 +5,7 @@ import { linkWhatsApp } from '../config'
 import { supabaseConfigurado } from '../lib/supabase'
 import { AuthProvider, useAuth } from './auth'
 import { Layout } from './Layout'
+import { Agenda } from './paginas/Agenda'
 import { Aguardando } from './paginas/Aguardando'
 import { Atendimento } from './paginas/Atendimento'
 import { Integracoes } from './paginas/Integracoes'
@@ -69,6 +70,7 @@ function Portao() {
       <Route path="/app" element={<Layout />}>
         <Route index element={<Painel />} />
         <Route path="atendimento" element={<Atendimento />} />
+        <Route path="agenda" element={<Agenda />} />
         <Route path="clientes" element={<Clientes />} />
         <Route path="negociacoes" element={<Negociacoes />} />
         {ehAdmin && <Route path="equipe" element={<Equipe />} />}

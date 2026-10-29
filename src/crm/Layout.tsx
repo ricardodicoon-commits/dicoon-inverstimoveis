@@ -10,33 +10,48 @@ export function Layout() {
   const [aberto, setAberto] = useState(false)
   const [trocandoSenha, setTrocandoSenha] = useState(false)
 
-  const links = [
-    { para: '/app', rotulo: 'Painel', fim: true },
-    { para: '/app/atendimento', rotulo: 'Atendimento' },
-    { para: '/app/clientes', rotulo: 'Clientes' },
-    { para: '/app/negociacoes', rotulo: 'Negociações' },
+  const grupos: { titulo?: string; links: { para: string; rotulo: string; fim?: boolean }[] }[] = [
+    {
+      links: [
+        { para: '/app', rotulo: 'Painel', fim: true },
+        { para: '/app/atendimento', rotulo: 'Atendimento' },
+        { para: '/app/clientes', rotulo: 'Clientes' },
+        { para: '/app/negociacoes', rotulo: 'Negociações' },
+      ],
+    },
+    { titulo: 'Secretária', links: [{ para: '/app/agenda', rotulo: 'Agenda' }] },
     ...(ehAdmin
       ? [
-          { para: '/app/equipe', rotulo: 'Equipe' },
-          { para: '/app/integracoes', rotulo: 'Integrações' },
+          {
+            titulo: 'Administração',
+            links: [
+              { para: '/app/equipe', rotulo: 'Equipe' },
+              { para: '/app/integracoes', rotulo: 'Integrações' },
+            ],
+          },
         ]
       : []),
   ]
 
   const menu = (
     <nav className="flex flex-col gap-1">
-      {links.map((l) => (
-        <NavLink
-          key={l.para}
-          to={l.para}
-          end={l.fim}
-          onClick={() => setAberto(false)}
-          className={({ isActive }) =>
-            `rounded-lg px-4 py-2.5 text-sm font-semibold ${isActive ? 'bg-gold/15 text-gold' : 'text-white/80 hover:bg-white/5 hover:text-white'}`
-          }
-        >
-          {l.rotulo}
-        </NavLink>
+      {grupos.map((g, i) => (
+        <div key={i} className="flex flex-col gap-1">
+          {g.titulo && <p className="mt-4 px-4 text-[11px] font-bold uppercase tracking-widest text-muted">{g.titulo}</p>}
+          {g.links.map((l) => (
+            <NavLink
+              key={l.para}
+              to={l.para}
+              end={l.fim}
+              onClick={() => setAberto(false)}
+              className={({ isActive }) =>
+                `rounded-lg px-4 py-2.5 text-sm font-semibold ${isActive ? 'bg-gold/15 text-gold' : 'text-white/80 hover:bg-white/5 hover:text-white'}`
+              }
+            >
+              {l.rotulo}
+            </NavLink>
+          ))}
+        </div>
       ))}
     </nav>
   )

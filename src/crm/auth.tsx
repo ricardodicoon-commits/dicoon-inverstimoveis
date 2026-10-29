@@ -9,6 +9,7 @@ interface Auth {
   sessao: Session | null | undefined
   perfil: Perfil | null | undefined
   ehAdmin: boolean
+  ehSecretaria: boolean
   sair: () => Promise<void>
 }
 
@@ -42,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessao,
     perfil,
     ehAdmin: Boolean(perfil?.role === 'admin' && perfil.ativo),
+    ehSecretaria: Boolean(perfil?.role === 'secretaria' && perfil.ativo),
     sair: async () => {
       await supabase.auth.signOut()
     },
