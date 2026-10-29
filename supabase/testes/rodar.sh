@@ -19,6 +19,10 @@ echo "=== 05";            preparar 05-secretaria-estrutura; P -d teste_secretari
 echo "=== 06 (sobre 05+06+07)"; preparar 05-secretaria-estrutura 06-secretaria-agenda 07-lembretes-e-follow-up; P -d teste_secretaria < "$T/teste-06.sql" 2>&1 | grep -v '^CONTEXT'
 echo "=== 07 (sobre 05+06+07)"; preparar 05-secretaria-estrutura 06-secretaria-agenda 07-lembretes-e-follow-up; P -d teste_secretaria < "$T/teste-07.sql" 2>&1 | grep -v '^CONTEXT'
 echo "=== 08 (sobre 05+06+07+08)"; preparar 05-secretaria-estrutura 06-secretaria-agenda 07-lembretes-e-follow-up 08-agendamentos-calcom; P -d teste_secretaria < "$T/teste-08.sql" 2>&1 | grep -v '^CONTEXT'
+echo "=== 10 financeiro (sobre 05+06+10)"; preparar 05-secretaria-estrutura 06-secretaria-agenda 10-financeiro; P -d teste_secretaria < "$T/teste-10.sql" 2>&1 | grep -v '^CONTEXT'
+for f in 10-financeiro 10-financeiro-desfazer; do
+  P -d teste_secretaria -v ON_ERROR_STOP=1 < "$S/$f.sql" >/dev/null 2>&1 && echo "OK 10: $f" || echo "FALHA 10: $f"
+done
 echo "=== rodar duas vezes e desfazer"
 preparar 05-secretaria-estrutura 06-secretaria-agenda 07-lembretes-e-follow-up 08-agendamentos-calcom
 for f in 05-secretaria-estrutura 06-secretaria-agenda 07-lembretes-e-follow-up 08-agendamentos-calcom; do
