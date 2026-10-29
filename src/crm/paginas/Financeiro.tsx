@@ -5,7 +5,7 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   Columns3,
-  Download,
+  FileSpreadsheet,
   Landmark,
   LayoutDashboard,
   List,
@@ -17,7 +17,7 @@ import {
   Wallet,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { baixarCsv, erroAmigavel, moeda, useAoVivo } from '../dados'
+import { erroAmigavel, moeda, useAoVivo } from '../dados'
 import { Kanban } from '../Kanban'
 import { Abas, Aviso, Botao, Cabecalho, Campo, Carregando, CartaoIndicador, Etiqueta, PainelLateral, Vazio, estiloCampo, type Tom } from '../ui'
 
@@ -158,45 +158,66 @@ export function Financeiro() {
   const [aba, setAba] = useState<'resumo' | 'receber' | 'pagar' | 'cadastros'>('resumo')
   const { categorias, contas, lancamentos } = useDadosFinanceiros()
   const [editando, setEditando] = useState<Lancamento | { novo: 'receber' | 'pagar' } | null>(null)
+  const [exportando, setExportando] = useState(false)
+  const [erroExportar, setErroExportar] = useState<unknown>(null)
 
   const cats = categorias.data ?? []
   const catPorId = Object.fromEntries(cats.map((c) => [c.id, c]))
-  const erro = categorias.error || contas.error || lancamentos.error
+  const erro = categorias.error || contas.error || lancamentos.error || erroExportar
 
-  function exportar() {
-    const contaPorId = Object.fromEntries((contas.data ?? []).map((c) => [c.id, c.nome]))
-    baixarCsv(`financeiro-${hojeSP()}.csv`, [
-      ['Tipo', 'Descrição', 'Categoria', 'Linha da DRE', 'Grupo do caixa', 'Valor', 'Competência', 'Vencimento', 'Situação', 'Pago em', 'Valor pago', 'Conta', 'Forma', 'Quem paga ou recebe', 'Repete', 'Observações'],
-      ...(lancamentos.data ?? []).map((l) => {
-        const c = catPorId[l.categoria_id]
-        return [
-          l.tipo === 'receber' ? 'A receber' : 'A pagar',
-          l.descricao,
-          c?.nome,
-          rot(linhasDre, c?.linha_dre ?? null),
-          rot(gruposDfc, c?.grupo_dfc ?? null),
-          l.valor.toFixed(2).replace('.', ','),
-          dataBR(l.competencia),
-          dataBR(l.vencimento),
-          l.status === 'pago' ? 'Pago' : l.status === 'cancelado' ? 'Cancelado' : 'Pendente',
-          dataBR(l.pago_em),
-          l.valor_pago?.toFixed(2).replace('.', ',') ?? '',
-          l.conta_id ? contaPorId[l.conta_id] : '',
-          rot(formas, l.forma_pagamento),
-          l.parceiro,
-          l.recorrencia ? 'Todo mês' : '',
-          l.observacoes,
-        ]
-      }),
-    ])
+  // Planilha completa em Excel, com fórmulas (o gerador e a biblioteca só carregam ao clicar).
+  async function exportar() {
+    setExportando(true)
+    setErroExportar(null)
+    try {
+      const { gerarExcelFinanceiro } = await import('../excelFinanceiro')
+      const contaPorId = Object.fromEntries((contas.data ?? []).map((c) => [c.id, c.nome]))
+      const arquivo = await gerarExcelFinanceiro({
+        hoje: hojeSP(),
+        meses: ultimosMeses(12),
+        lancamentos: (lancamentos.data ?? []).map((l) => {
+          const c = catPorId[l.categoria_id]
+          return {
+            tipo: l.tipo,
+            descricao: l.descricao,
+            categoria: c?.nome ?? 'Sem categoria',
+            linhaDre: rot(linhasDre, c?.linha_dre ?? null),
+            grupoDfc: rot(gruposDfc, c?.grupo_dfc ?? null),
+            competencia: l.competencia,
+            vencimento: l.vencimento,
+            status: l.status,
+            pagoEm: l.pago_em,
+            valor: l.valor,
+            valorPago: l.valor_pago,
+            conta: l.conta_id ? (contaPorId[l.conta_id] ?? '') : '',
+            forma: rot(formas, l.forma_pagamento),
+            parceiro: l.parceiro ?? '',
+            repete: !!l.recorrencia,
+            observacoes: l.observacoes ?? '',
+          }
+        }),
+        contas: (contas.data ?? []).map((c) => ({ nome: c.nome, tipo: rot(tiposConta, c.tipo), saldoInicial: Number(c.saldo_inicial), dataSaldoInicial: c.data_saldo_inicial, ativa: c.ativa })),
+        categorias: cats.map((c) => ({ nome: c.nome, tipo: c.tipo, linhaDre: rot(linhasDre, c.linha_dre), grupoDfc: rot(gruposDfc, c.grupo_dfc), ativa: c.ativa })),
+      })
+      const url = URL.createObjectURL(arquivo)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `financeiro-dicoon-${hojeSP()}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      setErroExportar(e)
+    } finally {
+      setExportando(false)
+    }
   }
 
   return (
     <>
       <Cabecalho titulo="Financeiro">
-        <Botao variante="secundario" onClick={exportar} disabled={!lancamentos.data?.length}>
+        <Botao variante="secundario" onClick={exportar} disabled={exportando || lancamentos.isPending}>
           <span className="inline-flex items-center gap-1.5">
-            <Download className="h-4 w-4" /> Exportar planilha
+            <FileSpreadsheet className="h-4 w-4" /> {exportando ? 'Gerando Excel…' : 'Exportar Excel'}
           </span>
         </Botao>
         <Botao variante="secundario" onClick={() => setEditando({ novo: 'pagar' })}>
