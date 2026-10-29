@@ -21,6 +21,10 @@ interface Contato {
 }
 
 // Chama a função do servidor e traz a mensagem de erro dela (em português) quando houver.
+export async function chamarCalcom<T>(corpo: Record<string, unknown>): Promise<T> {
+  return chamar<T>(corpo)
+}
+
 async function chamar<T>(corpo: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.functions.invoke('calcom-agenda', { body: corpo })
   if (error) {

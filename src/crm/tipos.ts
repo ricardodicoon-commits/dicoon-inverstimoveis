@@ -244,6 +244,7 @@ export interface Compromisso {
   negociacao_id: string | null
   cliente_id: string | null
   lead_id: string | null
+  calcom_uid?: string | null
   responsavel_id: string
   criado_por: string | null
   responsavel?: { nome: string | null; email: string } | null

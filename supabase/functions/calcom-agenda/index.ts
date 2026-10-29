@@ -55,6 +55,32 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Remarcar / cancelar um compromisso que veio do Cal.com: feito NO Cal.com (o cliente é avisado);
+    // o webhook atualiza a Agenda. Só quem pode editar o compromisso (a regra do banco decide).
+    if (corpo.acao === 'remarcar' || corpo.acao === 'cancelar') {
+      const { data: c } = await banco
+        .from('compromissos')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', String(corpo.compromisso_id ?? ''))
+        .select('id, calcom_uid, inicio')
+        .maybeSingle()
+      if (!c) return responder(403, { erro: 'Compromisso não encontrado ou você não pode alterá-lo.' })
+      const uid = (c as { calcom_uid: string | null }).calcom_uid
+      if (!uid) return responder(400, { erro: 'Este compromisso não veio do Cal.com.' })
+      const motivo = String(corpo.motivo ?? '').trim().slice(0, 300) || 'Alterado pela equipe da Dicoon Invest'
+      if (corpo.acao === 'cancelar') {
+        await cal(`/bookings/${uid}/cancel`, '2024-08-13', { method: 'POST', body: JSON.stringify({ cancellationReason: motivo }) })
+        return responder(200, { ok: true })
+      }
+      const inicio = String(corpo.inicio ?? '')
+      if (Number.isNaN(new Date(inicio).getTime()) || new Date(inicio).getTime() < Date.now()) return responder(400, { erro: 'Horário inválido.' })
+      await cal(`/bookings/${uid}/reschedule`, '2024-08-13', {
+        method: 'POST',
+        body: JSON.stringify({ start: new Date(inicio).toISOString(), reschedulingReason: motivo }),
+      })
+      return responder(200, { ok: true })
+    }
+
     const permitidos = await tipos()
     if (corpo.acao === 'tipos') return responder(200, { tipos: permitidos })
 
@@ -88,13 +114,14 @@ Deno.serve(async (req) => {
       if (!telefone) return responder(400, { erro: 'O cadastro não tem WhatsApp válido.' })
       const nome = c.nome_completo ?? c.nome ?? 'Cliente'
 
+      const notas = String(corpo.notas ?? '').trim().slice(0, 1000)
       const reserva = await cal('/bookings', '2024-08-13', {
         method: 'POST',
         body: JSON.stringify({
           start: new Date(inicio).toISOString(),
           eventTypeId: tipo.id,
           attendee: { name: nome, email, timeZone: 'America/Sao_Paulo', phoneNumber: telefone, language: 'pt' },
-          bookingFieldsResponses: { attendeePhoneNumber: telefone },
+          bookingFieldsResponses: { attendeePhoneNumber: telefone, ...(notas ? { notes: notas } : {}) },
           metadata: { origem: 'crm-secretaria' },
         }),
       })
@@ -106,7 +133,9 @@ Deno.serve(async (req) => {
     return responder(400, { erro: 'Ação desconhecida.' })
   } catch (e) {
     const msg = (e as Error).message ?? ''
-    if (/no longer available|not available|already has booking|busy/i.test(msg)) return responder(409, { erro: 'Esse horário acabou de ser ocupado. Escolha outro.' })
+    if (/no longer available|not available|already has booking|busy|outside|out of bounds|no available users/i.test(msg)) {
+      return responder(409, { erro: 'Esse horário não está livre no Cal.com (ocupado ou fora da sua disponibilidade). Use "Ver horários livres" e escolha outro.' })
+    }
     return responder(502, { erro: 'O Cal.com não respondeu como esperado. Tente de novo.', detalhe: msg.slice(0, 200) })
   }
 })
