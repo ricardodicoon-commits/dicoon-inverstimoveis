@@ -5,7 +5,7 @@ import { AlarmClock, CircleDollarSign, Handshake, ListTodo, UserCheck, UserPlus,
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth'
 import { erroAmigavel, moeda, useAoVivo } from '../dados'
-import { etapaFinal, etapas, tomEtapa } from '../tipos'
+import { etapaFinal, etapas, statusLead, tomEtapa, tomStatusLead } from '../tipos'
 import { Aviso, Cabecalho, Carregando, CartaoIndicador, tons } from '../ui'
 
 // Gráficos carregados sob demanda (a biblioteca de gráficos não pesa a abertura do app).
@@ -46,20 +46,38 @@ export function Painel() {
   const { data, isPending, error } = useQuery({
     queryKey: ['painel', ehAdmin],
     queryFn: async () => {
-      const [leads, tarefas, clientes, negociacoes, equipe] = await Promise.all([
+      // Compromissos de hoje no fuso de Brasília (o dia começa às 03:00 UTC).
+      const dia = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date())
+      const inicioDia = new Date(`${dia}T00:00:00-03:00`).toISOString()
+      const fimDia = new Date(new Date(inicioDia).getTime() + DIA).toISOString()
+      const agendaHoje = supabase
+        .from('compromissos')
+        .select('id, titulo, inicio, local, status')
+        .gte('inicio', inicioDia)
+        .lt('inicio', fimDia)
+        .neq('status', 'cancelado')
+        .order('inicio')
+        .limit(6)
+        .then(({ data, error }) => {
+          if (error) throw error
+          return (data ?? []) as { id: string; titulo: string; inicio: string; local: string | null; status: string }[]
+        })
+      const [leads, tarefas, clientes, negociacoes, equipe, hoje] = await Promise.all([
         linhas<{ created_at: string; status: string }>('leads', 'created_at, status'),
         linhas<{ status: string; data_tarefa: string }>('tarefas', 'status, data_tarefa'),
         linhas<{ created_at: string }>('clientes', 'created_at'),
         linhas<{ created_at: string; etapa: string; valor_estimado: number | null }>('negociacoes', 'created_at, etapa, valor_estimado'),
         ehAdmin ? linhas<{ aprovado: boolean; ativo: boolean }>('profiles', 'aprovado, ativo') : Promise.resolve([]),
+        agendaHoje,
       ])
-      return { leads, tarefas, clientes, negociacoes, equipe }
+      return { leads, tarefas, clientes, negociacoes, equipe, hoje }
     },
   })
   useAoVivo('leads', ['painel'])
   useAoVivo('tarefas', ['painel'])
   useAoVivo('clientes', ['painel'])
   useAoVivo('negociacoes', ['painel'])
+  useAoVivo('compromissos', ['painel'])
 
   const nome = perfil?.nome?.split(' ')[0] || 'bem-vindo'
   if (isPending) {
@@ -136,6 +154,50 @@ export function Painel() {
             </Suspense>
           ) : (
             <p className="py-10 text-center text-sm text-muted">Nenhuma negociação cadastrada ainda.</p>
+          )}
+        </Bloco>
+
+        <Bloco titulo="Funil de leads" link="/app/atendimento">
+          {data.leads.length ? (
+            <ul className="space-y-3">
+              {statusLead.map((s) => {
+                const total = data.leads.filter((l) => l.status === s.valor).length
+                const tom = tons[tomStatusLead[s.valor] ?? 'cinza']
+                return (
+                  <li key={s.valor}>
+                    <div className="mb-1 flex justify-between text-xs">
+                      <span className="text-white/80">{s.rotulo}</span>
+                      <span className="font-semibold text-white">{total}</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white/5">
+                      <div className={`h-full rounded-full ${tom.faixa}`} style={{ width: `${(total / data.leads.length) * 100}%` }} />
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <p className="py-10 text-center text-sm text-muted">Nenhum lead cadastrado ainda.</p>
+          )}
+        </Bloco>
+
+        <Bloco titulo="Agenda de hoje" link="/app/agenda">
+          {data.hoje.length ? (
+            <ul className="space-y-2">
+              {data.hoje.map((c) => (
+                <li key={c.id} className="flex items-start gap-3 rounded-xl bg-ink p-3">
+                  <span className="rounded-lg bg-sky-400/15 px-2 py-1 text-xs font-bold text-sky-300">
+                    {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }).format(new Date(c.inicio))}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm text-white">{c.titulo}</p>
+                    {c.local && <p className="truncate text-xs text-muted">{c.local}</p>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="py-10 text-center text-sm text-muted">Nenhum compromisso hoje.</p>
           )}
         </Bloco>
 
