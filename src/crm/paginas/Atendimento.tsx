@@ -60,8 +60,8 @@ export function Atendimento() {
   })
 
   const mudarStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from('leads').update({ status }).eq('id', id)
+    mutationFn: async ({ id, ...campos }: { id: string; status?: string; aceita_mensagens?: boolean }) => {
+      const { error } = await supabase.from('leads').update(campos).eq('id', id)
       if (error) throw error
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['leads'] }),
@@ -173,6 +173,14 @@ export function Atendimento() {
                       </option>
                     ))}
                   </select>
+                  <label className="mt-2 flex items-center gap-2 text-xs text-muted">
+                    <input
+                      type="checkbox"
+                      checked={l.aceita_mensagens !== false}
+                      onChange={(e) => mudarStatus.mutate({ id: l.id, aceita_mensagens: e.target.checked })}
+                    />
+                    Aceita mensagens (lembretes e retornos)
+                  </label>
                 </li>
               ))}
             </ul>

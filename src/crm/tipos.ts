@@ -34,6 +34,7 @@ export interface Cliente {
   observacoes: string | null
   status: string | null
   responsavel_id: string
+  aceita_mensagens?: boolean
   usuario_id?: string | null
   created_at: string
   responsavel?: { nome: string | null; email: string } | null
@@ -100,6 +101,7 @@ export interface Lead {
   status: string
   observacoes: string | null
   responsavel_id: string | null
+  aceita_mensagens?: boolean
   created_at: string
 }
 
@@ -188,12 +190,33 @@ export const categoriasCompromisso = [
 ]
 
 export const statusCompromisso = [
-  { valor: 'a_confirmar', rotulo: 'A confirmar' },
+  { valor: 'a_confirmar', rotulo: 'Agendado' },
+  { valor: 'aguardando_confirmacao', rotulo: 'Aguardando confirmação' },
   { valor: 'confirmado', rotulo: 'Confirmado' },
-  { valor: 'reagendado', rotulo: 'Reagendado' },
+  { valor: 'solicitou_remarcacao', rotulo: 'Solicitou remarcação' },
+  { valor: 'cancelamento_solicitado', rotulo: 'Cancelamento solicitado' },
+  { valor: 'reagendado', rotulo: 'Remarcado' },
+  { valor: 'realizado', rotulo: 'Concluído' },
+  { valor: 'nao_compareceu', rotulo: 'Não compareceu' },
+  { valor: 'follow_up_pendente', rotulo: 'Follow-up pendente' },
   { valor: 'cancelado', rotulo: 'Cancelado' },
-  { valor: 'realizado', rotulo: 'Realizado' },
 ]
+
+// Compromissos ainda no caminho (para conflitos e validação de comparecimento).
+export const statusAtivosCompromisso = ['a_confirmar', 'aguardando_confirmacao', 'confirmado', 'solicitou_remarcacao', 'reagendado']
+
+export interface LembreteEnvio {
+  id: string
+  compromisso_id: string
+  etapa: 'confirmacao' | 'follow_up_falta'
+  enviar_em: string
+  status: string
+  destinatario_telefone: string | null
+  mensagem: string | null
+  resposta_opcao: string | null
+  respostas: Record<string, string>
+  compromisso?: { titulo: string; inicio: string; fim: string; status: string } | null
+}
 
 export const prioridades = [
   { valor: 'baixa', rotulo: 'Baixa' },
@@ -218,6 +241,8 @@ export interface Compromisso {
   prioridade: string
   lembrete_minutos: number | null
   negociacao_id: string | null
+  cliente_id: string | null
+  lead_id: string | null
   responsavel_id: string
   criado_por: string | null
   responsavel?: { nome: string | null; email: string } | null

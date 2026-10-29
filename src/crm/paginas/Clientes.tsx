@@ -20,6 +20,7 @@ const vazio = {
   estado: '',
   status: 'Ativo',
   observacoes: '',
+  aceita_mensagens: 'sim',
 }
 type Formulario = typeof vazio
 
@@ -55,6 +56,7 @@ export function Clientes() {
         ...campos,
         data_nascimento: campos.data_nascimento || null,
         estado: campos.estado.toUpperCase() || null,
+        aceita_mensagens: campos.aceita_mensagens !== 'nao',
       }
       const { error } = id
         ? await supabase.from('clientes').update(linha).eq('id', id)
@@ -67,8 +69,9 @@ export function Clientes() {
       const antes = qc.getQueriesData({ queryKey: ['clientes'] })
       qc.setQueriesData<{ lista: Cliente[]; total: number }>({ queryKey: ['clientes'] }, (atual) => {
         if (!atual) return atual
-        if (id) return { ...atual, lista: atual.lista.map((c) => (c.id === id ? { ...c, ...campos } : c)) }
-        const temporario = { ...campos, id: `tmp-${Date.now()}`, responsavel_id: sessao!.user.id, created_at: new Date().toISOString() } as Cliente
+        const visivel = { ...campos, aceita_mensagens: campos.aceita_mensagens !== 'nao' }
+        if (id) return { ...atual, lista: atual.lista.map((c) => (c.id === id ? { ...c, ...visivel } : c)) }
+        const temporario = { ...visivel, id: `tmp-${Date.now()}`, responsavel_id: sessao!.user.id, created_at: new Date().toISOString() } as Cliente
         return { lista: [temporario, ...atual.lista], total: atual.total + 1 }
       })
       setEditando(null)
@@ -201,7 +204,10 @@ function FormCliente({
 }) {
   const [f, setF] = useState<Formulario>(() =>
     cliente
-      ? (Object.fromEntries(Object.keys(vazio).map((k) => [k, (cliente as unknown as Record<string, unknown>)[k] ?? ''])) as Formulario)
+      ? ({
+          ...(Object.fromEntries(Object.keys(vazio).map((k) => [k, (cliente as unknown as Record<string, unknown>)[k] ?? ''])) as Formulario),
+          aceita_mensagens: cliente.aceita_mensagens === false ? 'nao' : 'sim',
+        } as Formulario)
       : vazio,
   )
   const muda = (campo: keyof Formulario) => (e: { target: { value: string } }) => setF((x) => ({ ...x, [campo]: e.target.value }))
@@ -259,6 +265,12 @@ function FormCliente({
             {statusCliente.map((s) => (
               <option key={s}>{s}</option>
             ))}
+          </select>
+        </Campo>
+        <Campo rotulo="Aceita mensagens (lembretes e retornos)">
+          <select className={estiloCampo} value={f.aceita_mensagens} onChange={muda('aceita_mensagens')}>
+            <option value="sim">Sim</option>
+            <option value="nao">Não — pediu para não receber</option>
           </select>
         </Campo>
         <div className="sm:col-span-2">

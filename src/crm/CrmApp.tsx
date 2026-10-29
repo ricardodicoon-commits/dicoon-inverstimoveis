@@ -10,6 +10,7 @@ import { Aguardando } from './paginas/Aguardando'
 import { Atendimento } from './paginas/Atendimento'
 import { Integracoes } from './paginas/Integracoes'
 import { Clientes } from './paginas/Clientes'
+import { Confirmacoes } from './paginas/Confirmacoes'
 import { Entrada } from './paginas/Entrada'
 import { Equipe } from './paginas/Equipe'
 import { Negociacoes } from './paginas/Negociacoes'
@@ -73,6 +74,7 @@ function Portao() {
         <Route path="atendimento" element={<Atendimento />} />
         <Route path="agenda" element={<Agenda />} />
         <Route path="tarefas" element={<Tarefas />} />
+        <Route path="confirmacoes" element={<Confirmacoes />} />
         <Route path="clientes" element={<Clientes />} />
         <Route path="negociacoes" element={<Negociacoes />} />
         {ehAdmin && <Route path="equipe" element={<Equipe />} />}

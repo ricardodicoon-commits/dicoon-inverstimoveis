@@ -7,6 +7,7 @@ import {
   categoriasCompromisso,
   prioridades,
   rotulo,
+  statusAtivosCompromisso,
   statusCompromisso,
   type Compromisso,
 } from '../tipos'
@@ -33,11 +34,17 @@ function segundaDaSemana(dia: string) {
 
 const corStatus: Record<string, string> = {
   a_confirmar: 'border-amber-500/50',
+  aguardando_confirmacao: 'border-amber-500/50',
   confirmado: 'border-green-500/50',
+  solicitou_remarcacao: 'border-orange-500/60',
+  cancelamento_solicitado: 'border-red-500/50',
   reagendado: 'border-sky-500/50',
-  cancelado: 'border-red-500/40 opacity-60',
   realizado: 'border-line opacity-70',
+  nao_compareceu: 'border-red-500/40 opacity-70',
+  follow_up_pendente: 'border-orange-500/60',
+  cancelado: 'border-red-500/40 opacity-60',
 }
+const encerrados = ['cancelado', 'realizado', 'nao_compareceu', 'follow_up_pendente']
 
 const SELECT = '*, responsavel:profiles!compromissos_responsavel_id_fkey(nome, email)'
 
@@ -250,7 +257,7 @@ function Detalhe({ c, podeEditar, aoFechar, aoEditar }: { c: Compromisso; podeEd
     },
   })
 
-  const ativo = c.status !== 'cancelado' && c.status !== 'realizado'
+  const ativo = !encerrados.includes(c.status)
   const linhas: [string, string | null][] = [
     ['Quando', `${dataLonga(diaSP(c.inicio))}, ${horaSP(c.inicio)} às ${horaSP(c.fim)}`],
     ['Situação', rotulo(statusCompromisso, c.status)],
@@ -383,6 +390,7 @@ function FormCompromisso({
     lembrete: String(c?.lembrete_minutos ?? 30),
     responsavel: c?.responsavel_id ?? perfil?.id ?? '',
     negociacao: c?.negociacao_id ?? '',
+    contato: c?.cliente_id ? `cliente:${c.cliente_id}` : c?.lead_id ? `lead:${c.lead_id}` : '',
   })
   const muda = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value })
   const inicio = paraISO(f.dia, f.horaInicio)
@@ -411,6 +419,23 @@ function FormCompromisso({
     },
   })
 
+  // Cliente ou lead do compromisso: é para o telefone dele (e só dele) que vai o lembrete.
+  const contatos = useQuery({
+    queryKey: ['contatos', 'opcoes'],
+    queryFn: async () => {
+      const [cl, ld] = await Promise.all([
+        supabase.from('clientes').select('id, nome_completo').order('nome_completo').limit(300),
+        supabase.from('leads').select('id, nome').order('created_at', { ascending: false }).limit(300),
+      ])
+      if (cl.error) throw cl.error
+      if (ld.error) throw ld.error
+      return [
+        ...(cl.data as { id: string; nome_completo: string }[]).map((x) => ({ valor: `cliente:${x.id}`, rotulo: `${x.nome_completo} (cliente)` })),
+        ...(ld.data as { id: string; nome: string }[]).map((x) => ({ valor: `lead:${x.id}`, rotulo: `${x.nome} (lead)` })),
+      ]
+    },
+  })
+
   // Conflitos na agenda do responsável (as regras do banco limitam o que cada um enxerga).
   const conflitos = useQuery({
     queryKey: ['conflitos', f.responsavel, inicio, fim, c?.id],
@@ -420,7 +445,7 @@ function FormCompromisso({
         .from('compromissos')
         .select('id, titulo, inicio, fim')
         .eq('responsavel_id', f.responsavel)
-        .not('status', 'in', '("cancelado","realizado")')
+        .in('status', statusAtivosCompromisso)
         .lt('inicio', fim)
         .gt('fim', inicio)
       if (c) q = q.neq('id', c.id)
@@ -446,6 +471,8 @@ function FormCompromisso({
         lembrete_minutos: f.lembrete === '' ? null : Number(f.lembrete),
         responsavel_id: f.responsavel || perfil!.id,
         negociacao_id: f.negociacao || null,
+        cliente_id: f.contato.startsWith('cliente:') ? f.contato.slice(8) : null,
+        lead_id: f.contato.startsWith('lead:') ? f.contato.slice(5) : null,
       }
       const { error } = c
         ? await supabase.from('compromissos').update(linha).eq('id', c.id)
@@ -535,6 +562,16 @@ function FormCompromisso({
               <option value="1440">1 dia antes</option>
             </select>
           </Campo>
+          <Campo rotulo="Cliente ou lead">
+            <select className={estiloCampo} value={f.contato} onChange={muda('contato')}>
+              <option value="">Nenhum (compromisso interno)</option>
+              {contatos.data?.map((x) => (
+                <option key={x.valor} value={x.valor}>
+                  {x.rotulo}
+                </option>
+              ))}
+            </select>
+          </Campo>
           <Campo rotulo="Negociação ligada">
             <select className={estiloCampo} value={f.negociacao} onChange={muda('negociacao')}>
               <option value="">Nenhuma</option>
@@ -555,7 +592,11 @@ function FormCompromisso({
         <Campo rotulo="Observações">
           <textarea className={`${estiloCampo} min-h-16`} value={f.observacoes} onChange={muda('observacoes')} />
         </Campo>
-        <p className="text-xs text-muted">Nada é enviado aos participantes: a agenda é interna.</p>
+        <p className="text-xs text-muted">
+          {f.contato || f.negociacao
+            ? 'Com cliente ou lead ligado, a Secretária prepara o lembrete de confirmação para pelo menos 1 hora antes (em Confirmações). Nada é enviado sozinho.'
+            : 'Nada é enviado aos participantes: a agenda é interna.'}
+        </p>
         <div className="flex justify-end gap-3">
           <Botao type="button" variante="secundario" onClick={aoFechar}>
             Cancelar

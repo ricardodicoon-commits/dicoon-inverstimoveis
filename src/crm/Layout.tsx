@@ -23,6 +23,7 @@ export function Layout() {
       titulo: 'Secretária',
       links: [
         { para: '/app/agenda', rotulo: 'Agenda' },
+        { para: '/app/confirmacoes', rotulo: 'Confirmações' },
         { para: '/app/tarefas', rotulo: 'Tarefas' },
       ],
     },
