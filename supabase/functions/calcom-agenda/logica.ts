@@ -57,6 +57,29 @@ export function mensagemSugestao(nome: string | null, sugestoes: string[], durac
 
 export const emailValido = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim())
 
+// Local da reunião: Escritório (endereço da Dicoon), Local do cliente (endereço informado) ou Videochamada.
+export const ENDERECO_ESCRITORIO = 'Rua Capistrano de Abreu, 163 - Sala 2 - Niterói, Canoas/RS'
+export interface Local {
+  tipo: 'escritorio' | 'cliente' | 'video'
+  endereco?: string
+}
+export function localParaCalcom(l: Local): { calcom: Record<string, string>; texto: string } {
+  if (l.tipo === 'escritorio') return { calcom: { type: 'address' }, texto: `Escritório Dicoon Invest - ${ENDERECO_ESCRITORIO}` }
+  if (l.tipo === 'cliente') {
+    const endereco = (l.endereco ?? '').trim()
+    return { calcom: { type: 'attendeeAddress', address: endereco }, texto: endereco }
+  }
+  return { calcom: { type: 'integration', integration: 'cal-video' }, texto: 'Videochamada (Cal.com)' }
+}
+
+// "Reunião de 15 min between Ricardo X and Joana Y" (ou "entre … e …") -> "Reunião de 15 min com Joana Y".
+export function tituloEmPortugues(titulo: string | null, nomeCliente: string | null): string | null {
+  if (!titulo) return null
+  const m = titulo.match(/^(.*?)\s+(?:between|entre)\s+.+?\s+(?:and|e)\s+(.+)$/i)
+  if (!m) return titulo
+  return `${m[1].trim()} com ${nomeCliente ?? m[2].trim()}`
+}
+
 // Telefone do cadastro (DDD + número, com ou sem 55) no formato internacional que o Cal.com exige.
 export function telefoneInternacional(digitos: string | null): string | null {
   const d = (digitos ?? '').replace(/\D/g, '')

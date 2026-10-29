@@ -261,7 +261,15 @@ function Detalhe({ c, podeEditar, aoFechar, aoEditar }: { c: Compromisso; podeEd
   const cancelarCalcom = useMutation({
     mutationFn: () => chamarCalcom({ acao: 'cancelar', compromisso_id: c.id }),
     onSuccess: () => {
-      setTimeout(() => qc.invalidateQueries({ queryKey: ['compromissos'] }), 4000)
+      qc.invalidateQueries({ queryKey: ['compromissos'] })
+      aoFechar()
+    },
+  })
+  // Excluir agendamento do Cal.com: cancela lá (o cliente recebe o e-mail) e remove da Agenda.
+  const excluirCalcom = useMutation({
+    mutationFn: () => chamarCalcom({ acao: 'excluir', compromisso_id: c.id }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['compromissos'] })
       aoFechar()
     },
   })
@@ -287,14 +295,14 @@ function Detalhe({ c, podeEditar, aoFechar, aoEditar }: { c: Compromisso; podeEd
           <Aviso>{erroAmigavel(mudar.error || excluir.error)}</Aviso>
         </div>
       )}
-      {cancelarCalcom.error && (
+      {(cancelarCalcom.error || excluirCalcom.error) && (
         <div className="mb-4">
-          <Aviso>{(cancelarCalcom.error as Error).message}</Aviso>
+          <Aviso>{((cancelarCalcom.error || excluirCalcom.error) as Error).message}</Aviso>
         </div>
       )}
       {c.calcom_uid && (
         <p className="mb-4 rounded-lg bg-gold/10 px-3 py-2 text-xs text-gold">
-          Agendado pelo Cal.com: o cliente recebeu a confirmação por e-mail e recebe o lembrete 1 hora antes. Remarcar e cancelar avisam o cliente.
+          Sincronizado com o Cal.com: o cliente recebeu a confirmação por e-mail e recebe o lembrete 1 hora antes. Remarcar, cancelar e excluir avisam o cliente.
         </p>
       )}
       <dl className="grid gap-3 text-sm sm:grid-cols-2">
@@ -376,8 +384,18 @@ function Detalhe({ c, podeEditar, aoFechar, aoEditar }: { c: Compromisso; podeEd
                   Cancelar
                 </Botao>
               ))}
-            {/* Agendamento do Cal.com não é excluído daqui: excluir deixaria o cliente com o horário marcado. */}
-            {!c.calcom_uid && (
+            {c.calcom_uid ? (
+              <Botao
+                variante="perigo"
+                disabled={excluirCalcom.isPending}
+                onClick={() =>
+                  confirm('Excluir este agendamento? Ele é cancelado no Cal.com (o cliente recebe o aviso por e-mail) e sai da Agenda. Não dá para desfazer.') &&
+                  excluirCalcom.mutate()
+                }
+              >
+                {excluirCalcom.isPending ? 'Excluindo…' : 'Excluir (cancela no Cal.com)'}
+              </Botao>
+            ) : (
               <Botao
                 variante="perigo"
                 onClick={() => confirm('Excluir este compromisso de vez? Esta ação não pode ser desfeita.') && excluir.mutate()}
@@ -394,6 +412,23 @@ function Detalhe({ c, podeEditar, aoFechar, aoEditar }: { c: Compromisso; podeEd
   )
 }
 
+// Endereço do escritório (o mesmo cadastrado nos eventos do Cal.com).
+const ENDERECO_ESCRITORIO = 'Rua Capistrano de Abreu, 163 - Sala 2 - Niterói, Canoas/RS'
+type TipoLocal = 'escritorio' | 'cliente' | 'video'
+
+function localInicial(c: Compromisso | null): TipoLocal {
+  const t = `${c?.local ?? ''} ${c?.endereco ?? ''}`.toLowerCase()
+  if (!c || t.includes('escritório') || t.includes('capistrano')) return 'escritorio'
+  if (t.includes('videochamada') || t.includes('cal.com') || t.includes('meet') || t.includes('zoom')) return 'video'
+  return c.endereco || c.local ? 'cliente' : 'escritorio'
+}
+const textoLocal = (tipo: TipoLocal, endereco: string) =>
+  tipo === 'escritorio' ? `Escritório Dicoon Invest - ${ENDERECO_ESCRITORIO}` : tipo === 'video' ? 'Videochamada (Cal.com)' : endereco.trim()
+
+// Regras de sincronia com o Cal.com:
+// - NOVO com cliente: agenda NO Cal.com (o cliente recebe a confirmação e o lembrete) e grava na hora.
+// - Já vindo do Cal.com: mudar data/horário remarca NO Cal.com; cancelar/excluir cancela NO Cal.com.
+// - Sem cliente: compromisso interno, só no CRM.
 function FormCompromisso({
   compromisso,
   escolheResponsavel,
@@ -406,47 +441,65 @@ function FormCompromisso({
   const { perfil } = useAuth()
   const qc = useQueryClient()
   const c = compromisso
+  const duracaoAtual = c ? Math.round((new Date(c.fim).getTime() - new Date(c.inicio).getTime()) / 60000) : 0
   const [f, setF] = useState({
     titulo: c?.titulo ?? '',
-    categoria: c?.categoria ?? 'reuniao_comercial',
+    categoria: c?.categoria ?? 'atendimento_agendado',
     dia: c ? diaSP(c.inicio) : diaSP(new Date()),
     horaInicio: c ? horaSP(c.inicio) : '09:00',
     horaFim: c ? horaSP(c.fim) : '10:00',
-    local: c?.local ?? '',
-    endereco: c?.endereco ?? '',
+    localTipo: localInicial(c),
+    endereco: c && localInicial(c) === 'cliente' ? (c.endereco ?? c.local ?? '') : '',
     participantes: c?.participantes ?? '',
     objetivo: c?.objetivo ?? '',
     observacoes: c?.observacoes ?? '',
     prioridade: c?.prioridade ?? 'media',
-    lembrete: String(c?.lembrete_minutos ?? 30),
+    lembrete: String(c?.lembrete_minutos ?? 60),
     responsavel: c?.responsavel_id ?? perfil?.id ?? '',
-    negociacao: c?.negociacao_id ?? '',
     contato: c?.cliente_id ? `cliente:${c.cliente_id}` : c?.lead_id ? `lead:${c.lead_id}` : '',
     email: '',
     tipoCalcom: '',
+    vincularNeg: c?.negociacao_id ? 'sim' : 'nao',
   })
   const muda = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value })
 
-  // Regra: compromisso NOVO com cliente/lead é agendado pelo Cal.com (o cliente recebe a confirmação
-  // e o lembrete). Sem cliente, fica só no CRM. Já vindo do Cal.com, mudar horário remarca no Cal.com.
-  const viaCalcom = !c && Boolean(f.contato)
+  const novoCalcom = !c && Boolean(f.contato)
+  const editCalcom = Boolean(c?.calcom_uid)
+  const usaCalcom = novoCalcom || editCalcom
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.trim())
+
   const tiposCalcom = useQuery({
     queryKey: ['calcom', 'tipos'],
-    enabled: viaCalcom,
+    enabled: usaCalcom,
     queryFn: () => chamarCalcom<{ tipos: { id: number; titulo: string; minutos: number }[] }>({ acao: 'tipos' }),
     staleTime: 5 * 60_000,
   })
-  const tipoEscolhido = tiposCalcom.data?.tipos.find((t) => String(t.id) === f.tipoCalcom) ?? tiposCalcom.data?.tipos[0]
-  const horaFimCalcom = (() => {
-    if (!tipoEscolhido) return f.horaFim
+  const tipoEscolhido =
+    tiposCalcom.data?.tipos.find((t) => String(t.id) === f.tipoCalcom) ??
+    (editCalcom ? tiposCalcom.data?.tipos.find((t) => t.minutos === duracaoAtual) : undefined) ??
+    tiposCalcom.data?.tipos[0]
+
+  // Horários que o Cal.com aceita no dia escolhido (já com antecedência mínima e agenda ocupada).
+  const livres = useQuery({
+    queryKey: ['calcom', 'livres', tipoEscolhido?.id, f.dia],
+    enabled: usaCalcom && Boolean(tipoEscolhido),
+    queryFn: () => chamarCalcom<{ livres: string[] }>({ acao: 'horarios', eventTypeId: tipoEscolhido!.id, dia: f.dia }),
+  })
+  const opcoesHorario = (livres.data?.livres ?? []).map((s) => horaSP(s))
+  const horarioOriginal = c ? horaSP(c.inicio) : ''
+  const mesmoHorario = editCalcom && c && f.dia === diaSP(c.inicio) && f.horaInicio === horarioOriginal
+  const horaEscolhidaOk = !usaCalcom || mesmoHorario || opcoesHorario.includes(f.horaInicio)
+
+  const horaFimCalculada = (() => {
+    const minutos = usaCalcom ? (tipoEscolhido?.minutos ?? duracaoAtual) : 0
+    if (!minutos) return f.horaFim
     const [h, m] = f.horaInicio.split(':').map(Number)
-    const total = h * 60 + m + tipoEscolhido.minutos
+    const total = h * 60 + m + minutos
     return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
   })()
   const inicio = paraISO(f.dia, f.horaInicio)
-  const fim = paraISO(f.dia, viaCalcom ? horaFimCalcom : f.horaFim)
-  const horarioValido = viaCalcom ? true : f.horaFim > f.horaInicio
-  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.trim())
+  const fim = paraISO(f.dia, usaCalcom ? horaFimCalculada : f.horaFim)
+  const horarioValido = usaCalcom ? horaEscolhidaOk : f.horaFim > f.horaInicio
 
   const equipe = useQuery({
     queryKey: ['equipe', 'opcoes'],
@@ -457,48 +510,40 @@ function FormCompromisso({
       return data as { id: string; nome: string | null; email: string }[]
     },
   })
-  const negociacoes = useQuery({
-    queryKey: ['negociacoes', 'opcoes'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('negociacoes')
-        .select('id, cliente:clientes(nome_completo), lead:leads(nome)')
-        .order('updated_at', { ascending: false })
-        .limit(200)
-      if (error) throw error
-      return data as unknown as { id: string; cliente: { nome_completo: string } | null; lead: { nome: string } | null }[]
-    },
-  })
 
-  // Cliente ou lead do compromisso: é para o telefone dele (e só dele) que vai o lembrete.
+  // Clientes (cadastro) e leads (inclusive os que chegaram pelo WhatsApp), pelo nome.
   const contatos = useQuery({
     queryKey: ['contatos', 'opcoes'],
     queryFn: async () => {
       const [cl, ld] = await Promise.all([
         supabase.from('clientes').select('id, nome_completo, email').order('nome_completo').limit(300),
-        supabase.from('leads').select('id, nome, email').order('created_at', { ascending: false }).limit(300),
+        supabase.from('leads').select('id, nome, email').order('nome').limit(300),
       ])
       if (cl.error) throw cl.error
       if (ld.error) throw ld.error
       return [
-        ...(cl.data as { id: string; nome_completo: string; email: string | null }[]).map((x) => ({ valor: `cliente:${x.id}`, rotulo: `${x.nome_completo} (cliente)`, email: x.email })),
-        ...(ld.data as { id: string; nome: string; email: string | null }[]).map((x) => ({ valor: `lead:${x.id}`, rotulo: `${x.nome} (lead)`, email: x.email })),
-      ]
+        ...(cl.data as { id: string; nome_completo: string; email: string | null }[]).map((x) => ({ valor: `cliente:${x.id}`, nome: x.nome_completo, email: x.email })),
+        ...(ld.data as { id: string; nome: string; email: string | null }[]).map((x) => ({ valor: `lead:${x.id}`, nome: x.nome, email: x.email })),
+      ].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
     },
   })
 
-  // Conflitos na agenda do responsável (as regras do banco limitam o que cada um enxerga).
+  // Negociação aberta mais recente do cliente (para "Negociação ligada: Sim").
+  const negociacaoDoCliente = useQuery({
+    queryKey: ['negociacao-do-cliente', f.contato],
+    enabled: Boolean(f.contato) && !novoCalcom,
+    queryFn: async () => {
+      const col = f.contato.startsWith('cliente:') ? 'cliente_id' : 'lead_id'
+      const { data } = await supabase.from('negociacoes').select('id').eq(col, f.contato.split(':')[1]).neq('etapa', 'concluido').order('updated_at', { ascending: false }).limit(1).maybeSingle()
+      return (data as { id: string } | null)?.id ?? null
+    },
+  })
+
   const conflitos = useQuery({
     queryKey: ['conflitos', f.responsavel, inicio, fim, c?.id],
-    enabled: horarioValido && Boolean(f.responsavel),
+    enabled: !usaCalcom && horarioValido && Boolean(f.responsavel),
     queryFn: async () => {
-      let q = supabase
-        .from('compromissos')
-        .select('id, titulo, inicio, fim')
-        .eq('responsavel_id', f.responsavel)
-        .in('status', statusAtivosCompromisso)
-        .lt('inicio', fim)
-        .gt('fim', inicio)
+      let q = supabase.from('compromissos').select('id, titulo, inicio, fim').eq('responsavel_id', f.responsavel).in('status', statusAtivosCompromisso).lt('inicio', fim).gt('fim', inicio)
       if (c) q = q.neq('id', c.id)
       const { data, error } = await q
       if (error) throw error
@@ -506,10 +551,12 @@ function FormCompromisso({
     },
   })
 
+  const [agendadoCalcom, setAgendadoCalcom] = useState(false)
   const salvar = useMutation({
     mutationFn: async () => {
-      if (viaCalcom) {
-        if (!tipoEscolhido) throw new Error('Os tipos de reunião do Cal.com não carregaram. Tente de novo.')
+      const local = textoLocal(f.localTipo, f.endereco)
+      if (novoCalcom) {
+        if (!tipoEscolhido) throw new Error('Os tipos de reunião não carregaram. Tente de novo.')
         await chamarCalcom({
           acao: 'agendar',
           eventTypeId: tipoEscolhido.id,
@@ -518,64 +565,68 @@ function FormCompromisso({
           lead_id: f.contato.startsWith('lead:') ? f.contato.slice(5) : null,
           cliente_id: f.contato.startsWith('cliente:') ? f.contato.slice(8) : null,
           notas: [f.titulo.trim(), f.objetivo.trim(), f.observacoes.trim()].filter(Boolean).join('\n'),
+          local: { tipo: f.localTipo, endereco: f.endereco },
+          extras: {
+            titulo: f.titulo,
+            categoria: f.categoria,
+            prioridade: f.prioridade,
+            lembrete_minutos: f.lembrete === '' ? null : Number(f.lembrete),
+            participantes: f.participantes,
+            objetivo: f.objetivo,
+            responsavel_id: f.responsavel,
+            vincular_negociacao: f.vincularNeg === 'sim',
+          },
         })
         return
       }
-      // Veio do Cal.com e o horário mudou: remarca NO Cal.com (o cliente é avisado); o webhook move na Agenda.
-      const horarioMudou = c && (inicio !== paraISO(diaSP(c.inicio), horaSP(c.inicio)) || fim !== paraISO(diaSP(c.fim), horaSP(c.fim)))
-      if (c?.calcom_uid && horarioMudou) {
-        await chamarCalcom({ acao: 'remarcar', compromisso_id: c.id, inicio })
-      }
+      if (editCalcom && !mesmoHorario) await chamarCalcom({ acao: 'remarcar', compromisso_id: c!.id, inicio })
       const linha = {
         titulo: f.titulo.trim(),
         categoria: f.categoria,
         inicio,
         fim,
-        local: f.local || null,
-        endereco: f.endereco || null,
+        local: local || null,
+        endereco: f.localTipo === 'video' ? null : local || null,
         participantes: f.participantes || null,
         objetivo: f.objetivo || null,
         observacoes: f.observacoes || null,
         prioridade: f.prioridade,
         lembrete_minutos: f.lembrete === '' ? null : Number(f.lembrete),
         responsavel_id: f.responsavel || perfil!.id,
-        negociacao_id: f.negociacao || null,
-        cliente_id: f.contato.startsWith('cliente:') ? f.contato.slice(8) : null,
-        lead_id: f.contato.startsWith('lead:') ? f.contato.slice(5) : null,
+        negociacao_id: f.vincularNeg === 'sim' ? (c?.negociacao_id ?? negociacaoDoCliente.data ?? null) : null,
       }
-      // Do Cal.com, horário e contato são do Cal.com: aqui só os demais campos.
-      const { inicio: _i, fim: _f, cliente_id: _c, lead_id: _l, ...semHorario } = linha
+      // Do Cal.com, horário, contato e local são do Cal.com: aqui só os demais campos.
+      const { inicio: _i, fim: _f, local: _lo, endereco: _en, ...semCalcom } = linha
       const { error } = c
-        ? await supabase.from('compromissos').update(c.calcom_uid ? semHorario : linha).eq('id', c.id)
+        ? await supabase.from('compromissos').update(editCalcom ? semCalcom : linha).eq('id', c.id)
         : await supabase.from('compromissos').insert(linha)
       if (error) throw error
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['compromissos'] })
-      if (viaCalcom || c?.calcom_uid) setTimeout(() => qc.invalidateQueries({ queryKey: ['compromissos'] }), 4000)
-      if (viaCalcom) {
+      if (novoCalcom) {
         setAgendadoCalcom(true)
         return
       }
       aoFechar()
     },
   })
-  const [agendadoCalcom, setAgendadoCalcom] = useState(false)
 
   function enviar(e: FormEvent) {
     e.preventDefault()
     if (!horarioValido) return
-    if (viaCalcom && !emailOk) return
+    if (novoCalcom && !emailOk) return
+    if (f.localTipo === 'cliente' && !f.endereco.trim()) return
     if (conflitos.data?.length && !confirm('Este horário bate com outro compromisso. Salvar mesmo assim?')) return
     salvar.mutate()
   }
 
   if (agendadoCalcom) {
     return (
-      <Modal titulo="Agendado pelo Cal.com" aoFechar={aoFechar}>
+      <Modal titulo="Agendado" aoFechar={aoFechar}>
         <div className="space-y-4">
           <Aviso tipo="ok">
-            Agendado para {dataLonga(f.dia)} às {f.horaInicio}. O Cal.com enviou a confirmação para {f.email.trim()} e envia o lembrete 1 hora antes. O compromisso aparece na Agenda em instantes.
+            Agendado para {dataLonga(f.dia)} às {f.horaInicio}. O Cal.com enviou a confirmação para {f.email.trim()} e envia o lembrete 1 hora antes. O compromisso já está na Agenda.
           </Aviso>
           <div className="flex justify-end">
             <Botao onClick={aoFechar}>Fechar</Botao>
@@ -586,51 +637,59 @@ function FormCompromisso({
   }
 
   const erroSalvar = salvar.error
-    ? /Cal\.com|horário|e-mail|WhatsApp|permissão|Contato|tipos/i.test((salvar.error as Error).message)
+    ? /Cal\.com|horário|e-mail|WhatsApp|permissão|Cliente|tipos|endereço|Agenda/i.test((salvar.error as Error).message)
       ? (salvar.error as Error).message
       : erroAmigavel(salvar.error)
     : null
+  const nomeContato = contatos.data?.find((x) => x.valor === f.contato)?.nome
 
   return (
     <Modal titulo={c ? 'Editar compromisso' : 'Novo compromisso'} aoFechar={aoFechar}>
       <form onSubmit={enviar} className="grid gap-4">
         {erroSalvar && <Aviso>{erroSalvar}</Aviso>}
-        {viaCalcom && (
+        {usaCalcom && (
           <p className="rounded-lg bg-gold/10 px-3 py-2 text-xs text-gold">
-            Com cliente escolhido, o agendamento é feito pelo Cal.com: o cliente recebe a confirmação por e-mail e o lembrete 1 hora antes.
+            {novoCalcom
+              ? 'Com cliente, o agendamento vai para o Cal.com: o cliente recebe a confirmação por e-mail agora e o lembrete 1 hora antes.'
+              : 'Agendamento sincronizado com o Cal.com: mudar data ou horário remarca no Cal.com e avisa o cliente.'}
           </p>
         )}
-        {c?.calcom_uid && (
-          <p className="rounded-lg bg-gold/10 px-3 py-2 text-xs text-gold">
-            Agendamento do Cal.com: mudar data ou horário remarca no Cal.com e avisa o cliente.
-          </p>
-        )}
-        <Campo rotulo={viaCalcom ? 'Assunto (vai como observação ao Cal.com)' : 'Título *'}>
-          <input className={estiloCampo} value={f.titulo} onChange={muda('titulo')} required={!viaCalcom} autoFocus placeholder="Ex.: Reunião com a construtora X" />
-        </Campo>
-        {!c?.calcom_uid && (
-          <Campo rotulo="Cliente ou lead (com cliente, agenda pelo Cal.com e confirma com ele)">
+
+        <Campo rotulo="Cliente">
+          {c ? (
+            <input className={`${estiloCampo} opacity-70`} value={nomeContato ?? (f.contato ? 'Cliente' : 'Nenhum (compromisso interno)')} readOnly />
+          ) : (
             <select
               className={estiloCampo}
               value={f.contato}
               onChange={(e) => {
                 const escolhido = contatos.data?.find((x) => x.valor === e.target.value)
-                setF({ ...f, contato: e.target.value, email: f.email || escolhido?.email || '' })
+                setF({ ...f, contato: e.target.value, email: escolhido?.email ?? '', titulo: f.titulo || (escolhido ? `Reunião com ${escolhido.nome}` : '') })
               }}
             >
               <option value="">Nenhum (compromisso interno)</option>
               {contatos.data?.map((x) => (
                 <option key={x.valor} value={x.valor}>
-                  {x.rotulo}
+                  {x.nome}
                 </option>
               ))}
             </select>
-          </Campo>
-        )}
-        {viaCalcom && (
+          )}
+        </Campo>
+
+        <Campo rotulo={usaCalcom ? 'Assunto' : 'Título *'}>
+          <input className={estiloCampo} value={f.titulo} onChange={muda('titulo')} required={!usaCalcom} placeholder="Ex.: Financiamento do apartamento" />
+        </Campo>
+
+        {usaCalcom && (
           <div className="grid gap-4 sm:grid-cols-2">
-            <Campo rotulo="Tipo de reunião (Cal.com) *">
-              <select className={estiloCampo} value={f.tipoCalcom || String(tipoEscolhido?.id ?? '')} onChange={muda('tipoCalcom')}>
+            <Campo rotulo="Tipo de reunião *">
+              <select
+                className={estiloCampo}
+                value={String(tipoEscolhido?.id ?? '')}
+                onChange={(e) => setF({ ...f, tipoCalcom: e.target.value, horaInicio: editCalcom ? f.horaInicio : '' })}
+                disabled={editCalcom}
+              >
                 {tiposCalcom.isPending && <option>Carregando…</option>}
                 {tiposCalcom.data?.tipos.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -639,37 +698,73 @@ function FormCompromisso({
                 ))}
               </select>
             </Campo>
-            <Campo rotulo="E-mail do cliente * (para a confirmação)">
-              <input className={estiloCampo} type="email" value={f.email} onChange={muda('email')} required placeholder="cliente@exemplo.com" />
-            </Campo>
-            {tiposCalcom.error && <div className="sm:col-span-2"><Aviso>{(tiposCalcom.error as Error).message}</Aviso></div>}
-            {f.email && !emailOk && <p className="text-xs text-amber-300 sm:col-span-2">E-mail inválido.</p>}
+            {novoCalcom && (
+              <Campo rotulo="E-mail do cliente *">
+                <input className={estiloCampo} type="email" value={f.email} onChange={muda('email')} required placeholder="cliente@exemplo.com" />
+              </Campo>
+            )}
+            {tiposCalcom.error && (
+              <div className="sm:col-span-2">
+                <Aviso>{(tiposCalcom.error as Error).message}</Aviso>
+              </div>
+            )}
+            {novoCalcom && f.email && !emailOk && <p className="text-xs text-amber-300 sm:col-span-2">E-mail inválido.</p>}
           </div>
         )}
+
         <div className="grid gap-4 sm:grid-cols-3">
           <Campo rotulo="Data *">
-            <input type="date" className={estiloCampo} value={f.dia} onChange={muda('dia')} required />
+            <input type="date" className={estiloCampo} value={f.dia} min={diaSP(new Date())} onChange={(e) => setF({ ...f, dia: e.target.value, horaInicio: usaCalcom ? '' : f.horaInicio })} required />
           </Campo>
           <Campo rotulo="Início *">
-            <input type="time" className={estiloCampo} value={f.horaInicio} onChange={muda('horaInicio')} required />
+            {usaCalcom ? (
+              <select className={estiloCampo} value={f.horaInicio} onChange={muda('horaInicio')} required>
+                <option value="">{livres.isPending ? 'Buscando horários…' : opcoesHorario.length ? 'Escolha um horário livre' : 'Sem horários livres neste dia'}</option>
+                {mesmoHorario && !opcoesHorario.includes(horarioOriginal) && <option value={horarioOriginal}>{horarioOriginal} (atual)</option>}
+                {opcoesHorario.map((h) => (
+                  <option key={h} value={h}>
+                    {h}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input type="time" className={estiloCampo} value={f.horaInicio} onChange={muda('horaInicio')} required />
+            )}
           </Campo>
           <Campo rotulo="Fim *">
-            {viaCalcom ? (
-              <input type="time" className={`${estiloCampo} opacity-60`} value={horaFimCalcom} readOnly title="Definido pela duração da reunião no Cal.com" />
+            {usaCalcom ? (
+              <input type="time" className={`${estiloCampo} opacity-60`} value={horaFimCalculada} readOnly title="Definido pela duração da reunião" />
             ) : (
               <input type="time" className={estiloCampo} value={f.horaFim} onChange={muda('horaFim')} required />
             )}
           </Campo>
         </div>
-        {viaCalcom && <p className="-mt-2 text-xs text-muted">O horário precisa estar livre na sua disponibilidade do Cal.com.</p>}
-        {!horarioValido && <Aviso>O fim precisa ser depois do início.</Aviso>}
+        {usaCalcom && <p className="-mt-2 text-xs text-muted">Só aparecem os horários livres no Cal.com (respeitando a antecedência mínima de 2 horas).</p>}
+        {livres.error && <Aviso>{(livres.error as Error).message}</Aviso>}
+        {!usaCalcom && !horarioValido && <Aviso>O fim precisa ser depois do início.</Aviso>}
         {!!conflitos.data?.length && (
           <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-            Conflito de horário com:{' '}
-            {conflitos.data.map((x) => `${x.titulo} (${horaSP(x.inicio)}–${horaSP(x.fim)})`).join('; ')}
+            Conflito de horário com: {conflitos.data.map((x) => `${x.titulo} (${horaSP(x.inicio)}–${horaSP(x.fim)})`).join('; ')}
           </div>
         )}
+
         <div className="grid gap-4 sm:grid-cols-2">
+          <Campo rotulo="Local">
+            <select className={estiloCampo} value={f.localTipo} onChange={muda('localTipo')} disabled={editCalcom}>
+              <option value="escritorio">Escritório</option>
+              <option value="cliente">Local do cliente</option>
+              <option value="video">Videochamada</option>
+            </select>
+          </Campo>
+          <Campo rotulo={f.localTipo === 'cliente' ? 'Endereço do local *' : 'Endereço'}>
+            {f.localTipo === 'escritorio' ? (
+              <input className={`${estiloCampo} opacity-70`} value={ENDERECO_ESCRITORIO} readOnly />
+            ) : f.localTipo === 'cliente' ? (
+              <input className={estiloCampo} value={f.endereco} onChange={muda('endereco')} required readOnly={editCalcom} placeholder="Rua, número, bairro, cidade" />
+            ) : (
+              <input className={`${estiloCampo} opacity-70`} value="Link enviado pelo Cal.com" readOnly />
+            )}
+          </Campo>
           <Campo rotulo="Categoria">
             <select className={estiloCampo} value={f.categoria} onChange={muda('categoria')}>
               {categoriasCompromisso.map((x) => (
@@ -688,12 +783,6 @@ function FormCompromisso({
               ))}
             </select>
           </Campo>
-          <Campo rotulo="Local">
-            <input className={estiloCampo} value={f.local} onChange={muda('local')} placeholder="Ex.: Escritório, imobiliária, online" />
-          </Campo>
-          <Campo rotulo="Endereço">
-            <input className={estiloCampo} value={f.endereco} onChange={muda('endereco')} />
-          </Campo>
           {escolheResponsavel && (
             <Campo rotulo="Agenda de">
               <select className={estiloCampo} value={f.responsavel} onChange={muda('responsavel')}>
@@ -705,26 +794,24 @@ function FormCompromisso({
               </select>
             </Campo>
           )}
-          <Campo rotulo="Lembrete">
+          <Campo rotulo="Lembrete interno">
             <select className={estiloCampo} value={f.lembrete} onChange={muda('lembrete')}>
               <option value="">Sem lembrete</option>
-              <option value="15">15 min antes</option>
-              <option value="30">30 min antes</option>
               <option value="60">1 hora antes</option>
               <option value="1440">1 dia antes</option>
             </select>
           </Campo>
-          <Campo rotulo="Negociação ligada">
-            <select className={estiloCampo} value={f.negociacao} onChange={muda('negociacao')}>
-              <option value="">Nenhuma</option>
-              {negociacoes.data?.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.cliente?.nome_completo ?? n.lead?.nome ?? 'Negociação'}
-                </option>
-              ))}
-            </select>
-          </Campo>
+          {f.contato && (
+            <Campo rotulo="Negociação ligada">
+              <select className={estiloCampo} value={f.vincularNeg} onChange={muda('vincularNeg')}>
+                <option value="nao">Não</option>
+                <option value="sim">Sim (negociação aberta do cliente)</option>
+              </select>
+            </Campo>
+          )}
         </div>
+        {editCalcom && <p className="-mt-2 text-xs text-muted">Para mudar o local de um agendamento do Cal.com, cancele e agende de novo (o cliente é avisado nos dois casos).</p>}
+
         <Campo rotulo="Participantes">
           <input className={estiloCampo} value={f.participantes} onChange={muda('participantes')} placeholder="Nomes de quem participa" />
         </Campo>
@@ -735,18 +822,18 @@ function FormCompromisso({
           <textarea className={`${estiloCampo} min-h-16`} value={f.observacoes} onChange={muda('observacoes')} />
         </Campo>
         <p className="text-xs text-muted">
-          {viaCalcom
-            ? 'O Cal.com envia ao cliente a confirmação agora e o lembrete 1 hora antes, por e-mail. O lembrete por WhatsApp fica em Confirmações.'
-            : c?.calcom_uid
-              ? 'Agendamento do Cal.com: o cliente já recebeu a confirmação e recebe o lembrete por e-mail.'
+          {novoCalcom
+            ? 'Ao salvar, o Cal.com envia a confirmação por e-mail ao cliente e o lembrete 1 hora antes. Tudo fica gravado na Agenda na hora.'
+            : editCalcom
+              ? 'Alterações de data e horário vão para o Cal.com, que avisa o cliente por e-mail.'
               : 'Compromisso interno: nada é enviado a participantes.'}
         </p>
         <div className="flex justify-end gap-3">
           <Botao type="button" variante="secundario" onClick={aoFechar}>
             Cancelar
           </Botao>
-          <Botao type="submit" disabled={salvar.isPending || !horarioValido}>
-            {salvar.isPending ? 'Salvando…' : 'Salvar'}
+          <Botao type="submit" disabled={salvar.isPending || !horarioValido || (novoCalcom && !emailOk)}>
+            {salvar.isPending ? 'Salvando…' : novoCalcom ? 'Agendar e confirmar com o cliente' : 'Salvar'}
           </Botao>
         </div>
       </form>

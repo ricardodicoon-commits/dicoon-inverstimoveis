@@ -1,7 +1,18 @@
 // node --test supabase/functions/calcom-agenda/logica.test.ts
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { emailValido, escolherSugestoes, listarHorarios, mensagemSugestao, rotuloHorario, telefoneInternacional } from './logica.ts'
+import { emailValido, escolherSugestoes, listarHorarios, localParaCalcom, mensagemSugestao, rotuloHorario, telefoneInternacional, tituloEmPortugues } from './logica.ts'
+
+test('local: escritório com o endereço da Dicoon, local do cliente e videochamada', () => {
+  assert.deepEqual(localParaCalcom({ tipo: 'escritorio' }).calcom, { type: 'address' })
+  assert.match(localParaCalcom({ tipo: 'escritorio' }).texto, /Capistrano de Abreu, 163/)
+  assert.deepEqual(localParaCalcom({ tipo: 'cliente', endereco: ' Rua A, 10 ' }), { calcom: { type: 'attendeeAddress', address: 'Rua A, 10' }, texto: 'Rua A, 10' })
+  assert.deepEqual(localParaCalcom({ tipo: 'video' }).calcom, { type: 'integration', integration: 'cal-video' })
+})
+
+test('título em português', () => {
+  assert.equal(tituloEmPortugues('Reunião de 30 min between Ricardo and Joana', 'Joana Souza'), 'Reunião de 30 min com Joana Souza')
+})
 
 const porDia = {
   '2026-11-03': [{ start: '2026-11-03T09:00:00.000-03:00' }, { start: '2026-11-03T09:15:00.000-03:00' }, { start: '2026-11-03T14:00:00.000-03:00' }],
