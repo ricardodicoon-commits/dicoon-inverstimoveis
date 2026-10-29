@@ -4,7 +4,9 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { assinaturaValida, extrair } from './logica.ts'
 
-const banco = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
+// Chave de servidor: nome antigo (SUPABASE_SERVICE_ROLE_KEY) ou o novo formato de chaves (SUPABASE_SECRET_KEY).
+const chaveServidor = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
+const banco = createClient(Deno.env.get('SUPABASE_URL')!, chaveServidor, {
   auth: { persistSession: false },
 })
 

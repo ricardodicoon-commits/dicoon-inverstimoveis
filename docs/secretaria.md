@@ -76,3 +76,12 @@ bash supabase/testes/rodar.sh
 ```
 
 Os "ERROR" esperados na saída são as recusas testadas, como outro destinatário, falta de permissão ou resposta antes do envio. Ao mudar um script, rode de novo e compare.
+
+## Cal.com: agendamentos pelo link entram na Agenda (no ar desde 29/10/2026)
+
+- Fluxo: o cliente marca pelo link do Cal.com → webhook (criado, remarcado, cancelado) → Edge Function `calcom-webhook` (Supabase), que confere a assinatura `x-cal-signature-256` → `fn_receber_agendamento` (script 08) → compromisso "Atendimento agendado" ligado ao cliente/lead pelo telefone (cria lead de origem site se não existir), com lembrete de 1 h planejado em Confirmações.
+- Eventos "Reunião de 15 min" e "Reunião de 30 min" pedem **WhatsApp obrigatório** (campo `attendeePhoneNumber`). "Reunião secreta" ficou de fora.
+- A função foi publicada pelo editor do painel da Supabase em arquivo único (`logica.ts` + `index.ts`), com "Verify JWT" desligado. Ao mudar o código, gere o arquivo único de novo ou publique pela CLI com `--no-verify-jwt`.
+- Segredos: `CALCOM_WEBHOOK_SECRET` nos segredos da função (igual ao de `~/.config/jarvis/calcom.env` no Ubuntu); chave da API do Cal.com só no Ubuntu.
+- Falhas ficam em `integracao_falhas` (origem `calcom`, sem dados pessoais).
+- Para desligar: desative o webhook no Cal.com (Settings > Developer > Webhooks).
