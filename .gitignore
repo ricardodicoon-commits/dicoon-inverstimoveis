@@ -47,6 +47,7 @@ next-env.d.ts
 backup/
 *.sql
 !supabase/*.sql
+!supabase/testes/*.sql
 
 # astro
 .astro/
