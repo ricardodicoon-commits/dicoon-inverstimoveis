@@ -42,6 +42,15 @@ function local(v: unknown): string | null {
 
 export const EVENTOS = ['BOOKING_CREATED', 'BOOKING_RESCHEDULED', 'BOOKING_CANCELLED']
 
+// O Cal.com manda "Reunião de 15 min between Ricardo X and Joana Y" (ou "entre Ricardo X e Joana Y",
+// conforme o idioma): vira "Reunião de 15 min com Joana Y".
+export function tituloEmPortugues(titulo: string | null, nomeCliente: string | null): string | null {
+  if (!titulo) return null
+  const m = titulo.match(/^(.*?)\s+(?:between|entre)\s+.+?\s+(?:and|e)\s+(.+)$/i)
+  if (!m) return titulo
+  return `${m[1].trim()} com ${nomeCliente ?? m[2].trim()}`
+}
+
 // Converte o aviso do Cal.com nos parâmetros de fn_receber_agendamento. Devolve null se não for de agendamento.
 export function extrair(aviso: Json): Agendamento | null {
   const evento = texto(aviso.triggerEvent)
@@ -53,14 +62,15 @@ export function extrair(aviso: Json): Agendamento | null {
   if (!uid || !inicio || !fim) return null
   const respostas = (p.responses ?? {}) as Json
   const participante = (Array.isArray(p.attendees) ? p.attendees[0] : null) as Json | null
+  const nome = resposta(respostas.name) ?? texto(participante?.name)
   return {
     p_evento: evento,
     p_uid: uid,
     p_uid_anterior: texto(p.rescheduleUid) ?? texto(p.fromReschedule),
-    p_titulo: texto(p.title) ?? texto(p.eventTitle),
+    p_titulo: tituloEmPortugues(texto(p.title) ?? texto(p.eventTitle), nome),
     p_inicio: inicio,
     p_fim: fim,
-    p_nome: resposta(respostas.name) ?? texto(participante?.name),
+    p_nome: nome,
     p_telefone: resposta(respostas.attendeePhoneNumber) ?? texto(participante?.phoneNumber) ?? texto(p.smsReminderNumber),
     p_email: resposta(respostas.email) ?? texto(participante?.email),
     p_local: local(p.location),

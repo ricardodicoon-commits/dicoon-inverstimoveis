@@ -2,7 +2,15 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createHmac } from 'node:crypto'
-import { assinaturaValida, extrair } from './logica.ts'
+import { assinaturaValida, extrair, tituloEmPortugues } from './logica.ts'
+
+test('título do Cal.com em português, com o nome do cliente', () => {
+  assert.equal(tituloEmPortugues('Reunião de 15 min between Ricardo Schimuneck and Joana Souza', 'Joana Souza'), 'Reunião de 15 min com Joana Souza')
+  assert.equal(tituloEmPortugues('Reunião de 30 min between Ricardo and Ana Paula Lima', null), 'Reunião de 30 min com Ana Paula Lima')
+  assert.equal(tituloEmPortugues('Reunião de 15 min entre Ricardo Schimuneck e Joana Souza', 'Joana Souza'), 'Reunião de 15 min com Joana Souza')
+  assert.equal(tituloEmPortugues('Visita ao imóvel', 'Joana'), 'Visita ao imóvel')
+  assert.equal(tituloEmPortugues(null, 'Joana'), null)
+})
 
 const segredo = 'segredo-de-teste'
 const assinar = (corpo: string) => createHmac('sha256', segredo).update(corpo).digest('hex')
@@ -36,6 +44,7 @@ test('extrai um agendamento criado com telefone das respostas', () => {
   assert.equal(d.p_uid, 'abc123')
   assert.equal(d.p_telefone, '+5551987654321')
   assert.equal(d.p_nome, 'Joana Souza')
+  assert.equal(d.p_titulo, 'Reunião de 30 min com Joana Souza')
   assert.equal(d.p_local, 'Videochamada (Cal.com)')
   assert.equal(d.p_observacoes, 'Quero financiar')
   assert.equal(d.p_uid_anterior, null)
