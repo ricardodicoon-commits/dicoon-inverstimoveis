@@ -19,6 +19,7 @@ import {
   UserCog,
   Users,
   KeyRound,
+  Wallet,
   X,
 } from 'lucide-react'
 import { Logo } from '../components/Logo'
@@ -84,6 +85,7 @@ export function Layout() {
           {
             titulo: 'Administração',
             links: [
+              { para: '/app/financeiro', rotulo: 'Financeiro', icone: Wallet },
               { para: '/app/equipe', rotulo: 'Equipe', icone: UserCog },
               { para: '/app/integracoes', rotulo: 'Integrações', icone: PlugZap },
             ],

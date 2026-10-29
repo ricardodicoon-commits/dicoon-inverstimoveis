@@ -34,7 +34,22 @@ export function erroAmigavel(e: unknown) {
   if (/rate limit|too many/i.test(msg)) return 'Muitas tentativas. Aguarde alguns minutos e tente de novo.'
   if (/should be different/i.test(msg)) return 'A nova senha precisa ser diferente da atual.'
   if (/weak|at least/i.test(msg)) return 'Senha fraca. Use pelo menos 8 caracteres, misturando letras e números.'
+  if (/Categoria incompatível/.test(msg)) return msg
+  if (/fin_lancamentos_pago_coerente/.test(msg)) return 'Para marcar como pago, informe a data do pagamento e a conta.'
+  if (/duplicate key|unique/i.test(msg)) return 'Já existe um cadastro com esse nome.'
   return 'Não foi possível concluir a operação. Tente novamente.'
 }
 
 export const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+
+// CSV com ";" e BOM, que o Excel em português abre com acentos e colunas certas.
+export function baixarCsv(nome: string, linhas: (string | number | null | undefined)[][]) {
+  const celula = (v: string | number | null | undefined) => `"${String(v ?? '').replace(/"/g, '""')}"`
+  const texto = '﻿' + linhas.map((l) => l.map(celula).join(';')).join('\r\n')
+  const url = URL.createObjectURL(new Blob([texto], { type: 'text/csv;charset=utf-8' }))
+  const a = document.createElement('a')
+  a.href = url
+  a.download = nome
+  a.click()
+  URL.revokeObjectURL(url)
+}

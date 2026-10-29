@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { CalendarDays, Download, Handshake, ListTodo, Search, UserCheck, UserPlus, Users, UserX } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth'
-import { erroAmigavel, limparBusca, moeda, useAoVivo } from '../dados'
+import { baixarCsv, erroAmigavel, limparBusca, moeda, useAoVivo } from '../dados'
 import { rotuloEtapa, statusCliente, tomEtapa, type Cliente } from '../tipos'
 import { Aviso, Botao, Cabecalho, Campo, Carregando, CartaoIndicador, Etiqueta, PainelLateral, Vazio, estiloCampo, type Tom } from '../ui'
 
@@ -37,18 +37,6 @@ function consulta(f: Filtros, colunas: string, contar = false) {
   if (f.responsavel) q = q.eq('responsavel_id', f.responsavel)
   if (f.mensagens) q = q.eq('aceita_mensagens', f.mensagens === 'sim')
   return q.order('created_at', { ascending: false })
-}
-
-// CSV com ";" e BOM, que o Excel em português abre com acentos e colunas certas.
-function baixarCsv(nome: string, linhas: (string | number | null | undefined)[][]) {
-  const celula = (v: string | number | null | undefined) => `"${String(v ?? '').replace(/"/g, '""')}"`
-  const texto = '﻿' + linhas.map((l) => l.map(celula).join(';')).join('\r\n')
-  const url = URL.createObjectURL(new Blob([texto], { type: 'text/csv;charset=utf-8' }))
-  const a = document.createElement('a')
-  a.href = url
-  a.download = nome
-  a.click()
-  URL.revokeObjectURL(url)
 }
 
 export function Clientes() {

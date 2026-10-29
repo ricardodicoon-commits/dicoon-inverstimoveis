@@ -1,4 +1,4 @@
-import { Area, AreaChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Area, AreaChart, Bar, CartesianGrid, Cell, ComposedChart, Legend, Line, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 // Gráficos do CRM (carregados sob demanda para não pesar a abertura do app). Cores do tema escuro.
 const GRADE = '#24405e'
@@ -32,6 +32,26 @@ export function GraficoLinhas({ dados, series }: { dados: Record<string, number 
           <Area key={s.chave} type="monotone" dataKey={s.chave} name={s.rotulo} stroke={s.cor} strokeWidth={2} fill={`url(#g-${s.chave})`} dot={false} activeDot={{ r: 4 }} />
         ))}
       </AreaChart>
+    </ResponsiveContainer>
+  )
+}
+
+// Entradas e saídas em barras, resultado em linha (valores em reais, eixo resumido: 12 mil).
+const moedaCurta = new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 })
+const moedaCheia = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+export function GraficoCaixa({ dados }: { dados: { mes: string; entradas: number; saidas: number; resultado: number }[] }) {
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <ComposedChart data={dados} margin={{ top: 8, right: 8, left: -6, bottom: 0 }}>
+        <CartesianGrid stroke={GRADE} strokeDasharray="3 3" vertical={false} />
+        <XAxis dataKey="mes" tick={{ fill: TEXTO, fontSize: 11 }} axisLine={false} tickLine={false} />
+        <YAxis tickFormatter={(v: number) => moedaCurta.format(v)} tick={{ fill: TEXTO, fontSize: 11 }} axisLine={false} tickLine={false} />
+        <Tooltip contentStyle={dicaEstilo} labelStyle={{ color: TEXTO }} formatter={(v) => moedaCheia.format(Number(v))} />
+        <Legend wrapperStyle={{ fontSize: 12, color: TEXTO }} iconType="circle" iconSize={8} />
+        <Bar dataKey="entradas" name="Entradas" fill="#34d399" radius={[4, 4, 0, 0]} maxBarSize={22} />
+        <Bar dataKey="saidas" name="Saídas" fill="#fb7185" radius={[4, 4, 0, 0]} maxBarSize={22} />
+        <Line type="monotone" dataKey="resultado" name="Resultado" stroke="#c8a45d" strokeWidth={2} dot={{ r: 3 }} />
+      </ComposedChart>
     </ResponsiveContainer>
   )
 }

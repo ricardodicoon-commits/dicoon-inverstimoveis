@@ -9,6 +9,7 @@ import { Agenda } from './paginas/Agenda'
 import { Aguardando } from './paginas/Aguardando'
 import { Atendimento } from './paginas/Atendimento'
 import { Integracoes } from './paginas/Integracoes'
+import { Financeiro } from './paginas/Financeiro'
 import { Clientes } from './paginas/Clientes'
 import { Confirmacoes } from './paginas/Confirmacoes'
 import { Entrada } from './paginas/Entrada'
@@ -85,6 +86,7 @@ function Portao() {
         <Route path="negociacoes" element={<Negociacoes />} />
         {ehAdmin && <Route path="equipe" element={<Equipe />} />}
         {ehAdmin && <Route path="integracoes" element={<Integracoes />} />}
+        {ehAdmin && <Route path="financeiro" element={<Financeiro />} />}
         <Route path="*" element={<Navigate to="/app" replace />} />
       </Route>
     </Routes>
