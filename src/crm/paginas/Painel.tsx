@@ -103,7 +103,7 @@ export function Painel() {
   return (
     <>
       <Cabecalho titulo={`Olá, ${nome}`} />
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="mb-6 grid grid-cols-2 gap-3 xl:grid-cols-3">
         {indicadores.map((i) => (
           <Link key={i.rotulo} to={i.para}>
             <CartaoIndicador rotulo={i.rotulo} valor={i.valor} icone={i.icone} tom={i.tom} detalhe={i.detalhe} />

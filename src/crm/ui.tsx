@@ -138,15 +138,15 @@ export function CartaoIndicador({
   detalhe?: ReactNode
 }) {
   return (
-    <div className="flex h-full items-start gap-3 rounded-2xl border border-line bg-coal p-4 transition hover:border-gold/50">
+    <div className="flex h-full flex-col items-start gap-2 rounded-2xl border border-line bg-coal p-3 transition hover:border-gold/50 sm:flex-row sm:gap-3 sm:p-4">
       {Icone && (
-        <span className={`rounded-xl p-2.5 ${tons[tom].fundo} ${tons[tom].texto}`}>
+        <span className={`shrink-0 rounded-xl p-2 sm:p-2.5 ${tons[tom].fundo} ${tons[tom].texto}`}>
           <Icone className="h-5 w-5" />
         </span>
       )}
       <div className="min-w-0">
         <p className="text-2xl font-bold leading-tight text-white sm:text-3xl">{valor}</p>
-        <p className="mt-0.5 truncate text-xs text-muted">{rotulo}</p>
+        <p className="mt-0.5 text-xs leading-snug text-muted">{rotulo}</p>
         {detalhe && <p className="mt-1 text-[11px] text-white/60">{detalhe}</p>}
       </div>
     </div>
