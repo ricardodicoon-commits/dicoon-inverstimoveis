@@ -37,8 +37,10 @@ Duas aplicações no mesmo projeto Astro:
 
 - `pages/app.astro` monta `src/crm/CrmApp.tsx` com `client:only="react"` (sem renderização no servidor), usando React Router e TanStack Query.
 - Autenticação e dados vêm do **Supabase** (`src/lib/supabase.ts`, chave anon pública via `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` — por isso `envPrefix` inclui `VITE_`). Sem essas variáveis o CRM mostra a tela de manutenção.
-- Papéis (`src/crm/tipos.ts`): `admin`, `corretor`, `atendente`, `cliente`. `CrmApp` encaminha: sem sessão → `Entrada`; não aprovado/inativo → `Aguardando`; `cliente` → `PortalCliente`; demais → painel com Clientes, Negociações e Equipe (só admin).
-- **A segurança dos dados é feita pelas regras RLS do banco**, não pelo front-end. Os scripts SQL em `supabase/` são rodados à mão no SQL Editor do Supabase, na ordem `03-papel-cliente.sql` → `04-acessos-por-papel.sql` (o `01-seguranca.sql` foi substituído; o `02` apaga dados de teste e é irreversível).
+- Papéis (`src/crm/tipos.ts`): `admin`, `corretor`, `atendente`, `secretaria`, `cliente`. `CrmApp` encaminha: sem sessão → `Entrada`; não aprovado/inativo → `Aguardando`; `cliente` → `PortalCliente`; demais → painel com Atendimento, Clientes, Negociações, a seção **Secretária** (Resumo do dia, Agenda, Confirmações, Tarefas, Follow-up, Mensagens) e Administração (Equipe, Integrações; só admin). Detalhes, regras e limitações da Secretária: `docs/secretaria.md`.
+- **A segurança dos dados é feita pelas regras RLS do banco**, não pelo front-end. Os scripts SQL em `supabase/` são rodados à mão no SQL Editor do Supabase. Aplicados em produção (28/10/2026): `05-secretaria-estrutura.sql` → `06-secretaria-agenda.sql` → `07-lembretes-e-follow-up.sql`, cada um com `-desfazer.sql`. **Ainda NÃO aplicados** (decisão: ficam para a reestruturação): `03-papel-cliente.sql` e `04-acessos-por-papel.sql`; por isso o Portal do Cliente não funciona. O `01-seguranca.sql` foi substituído; o `02` apaga dados de teste e é irreversível.
+- Antes de mudar um script SQL, teste em banco descartável: `bash supabase/testes/rodar.sh` (dentro do Ubuntu, usa o Postgres do JARVIS no Docker). Etapas de negociação = enum `negotiation_stage_type` (`novo_contato`…`concluido`); `tarefas.responsavel_id` não tem chave estrangeira.
+- A Secretária está em **modo assistido**: o sistema não envia mensagens; nada consta como enviado sem registro de uma pessoa; mensagem ligada a cliente só vai para o telefone do próprio cliente (regra no banco).
 
 ## Estilos
 
