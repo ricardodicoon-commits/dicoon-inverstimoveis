@@ -96,6 +96,7 @@ export interface Lead {
   id: string
   nome: string
   telefone: string
+  email?: string | null
   tipo_interesse: string
   origem_lead: string
   status: string

@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth'
 import { erroAmigavel, useAoVivo } from '../dados'
 import { interesses, rotulo, rotuloConexao, statusLead, type Canal, type Lead, type Tarefa } from '../tipos'
+import { AgendarCalcom } from '../AgendarCalcom'
 import { Aviso, Botao, Cabecalho, Campo, Carregando, Modal, Vazio, estiloCampo } from '../ui'
 
 const dataCurta = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' })
@@ -16,6 +17,7 @@ export function Atendimento() {
   const qc = useQueryClient()
   const [cadastrando, setCadastrando] = useState(false)
   const [aviso, setAviso] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null)
+  const [agendando, setAgendando] = useState<Lead | null>(null)
 
   const canal = useQuery({
     queryKey: ['canal'],
@@ -151,14 +153,19 @@ export function Atendimento() {
                         {rotulo(interesses, l.tipo_interesse)} · {l.origem_lead} · {dataCurta.format(new Date(l.created_at))}
                       </p>
                     </div>
-                    <a
-                      href={`https://wa.me/${l.telefone.startsWith('55') ? l.telefone : `55${l.telefone}`}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs font-semibold text-gold hover:underline"
-                    >
-                      Abrir no WhatsApp
-                    </a>
+                    <div className="flex flex-col items-end gap-1">
+                      <a
+                        href={`https://wa.me/${l.telefone.startsWith('55') ? l.telefone : `55${l.telefone}`}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-semibold text-gold hover:underline"
+                      >
+                        Abrir no WhatsApp
+                      </a>
+                      <button onClick={() => setAgendando(l)} className="text-xs font-semibold text-gold hover:underline">
+                        Agendar pelo Cal.com
+                      </button>
+                    </div>
                   </div>
                   {l.observacoes && <p className="mt-2 line-clamp-2 text-xs text-muted">{l.observacoes}</p>}
                   <select
@@ -188,6 +195,12 @@ export function Atendimento() {
         </section>
       </div>
 
+      {agendando && (
+        <AgendarCalcom
+          contato={{ tipo: 'lead', id: agendando.id, nome: agendando.nome, telefone: agendando.telefone, email: agendando.email ?? null }}
+          aoFechar={() => setAgendando(null)}
+        />
+      )}
       {cadastrando && (
         <NovoLead
           ehAdmin={ehAdmin}
