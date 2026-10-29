@@ -1,4 +1,12 @@
-export type Papel = 'admin' | 'corretor' | 'atendente' | 'cliente'
+export type Papel = 'admin' | 'corretor' | 'atendente' | 'secretaria' | 'cliente'
+
+export const rotuloPapel: Record<Papel, string> = {
+  admin: 'Administrador',
+  corretor: 'Corretor',
+  atendente: 'Atendente',
+  secretaria: 'Secretária',
+  cliente: 'Cliente',
+}
 
 export interface Perfil {
   id: string

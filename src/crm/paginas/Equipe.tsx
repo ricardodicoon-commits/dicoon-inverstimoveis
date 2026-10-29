@@ -63,6 +63,7 @@ export function Equipe() {
           >
             <option value="atendente">Atendente</option>
             <option value="corretor">Corretor</option>
+            <option value="secretaria">Secretária</option>
             <option value="admin">Administrador</option>
           </select>
         )}

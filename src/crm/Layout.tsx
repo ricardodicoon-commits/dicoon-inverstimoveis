@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { Logo } from '../components/Logo'
 import { useAuth } from './auth'
+import { rotuloPapel } from './tipos'
 import { TrocarSenha } from './TrocarSenha'
 
 export function Layout() {
@@ -43,7 +44,7 @@ export function Layout() {
   const rodape = (
     <div className="border-t border-line pt-4 text-xs">
       <p className="truncate font-semibold text-white">{perfil?.nome || perfil?.email}</p>
-      <p className="truncate text-muted">{perfil?.role === 'admin' ? 'Administrador' : perfil?.role}</p>
+      <p className="truncate text-muted">{perfil ? rotuloPapel[perfil.role] ?? perfil.role : ''}</p>
       <div className="mt-3 flex gap-4">
         <button onClick={() => setTrocandoSenha(true)} className="font-semibold text-gold hover:underline">
           Trocar senha
