@@ -44,6 +44,7 @@ export function Kanban<T extends { id: string }>({
   podeMover,
   aoMover,
   aoCriar,
+  podeCriar = () => true,
   vazioColuna = 'Nada aqui.',
 }: {
   colunas: ColunaKanban[]
@@ -53,6 +54,7 @@ export function Kanban<T extends { id: string }>({
   podeMover: (item: T) => boolean
   aoMover: (item: T, destino: string) => void
   aoCriar?: (coluna: string) => void
+  podeCriar?: (coluna: string) => boolean // "+" só nas colunas em que faz sentido criar
   vazioColuna?: string
 }) {
   const larga = useTelaLarga()
@@ -122,7 +124,7 @@ export function Kanban<T extends { id: string }>({
             </div>
           ))}
           {!lista.length && <p className="rounded-xl border border-dashed border-line px-4 py-8 text-center text-sm text-muted">{vazioColuna}</p>}
-          {aoCriar && (
+          {aoCriar && podeCriar(atual.valor) && (
             <button onClick={() => aoCriar(atual.valor)} className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-line py-3 text-sm font-semibold text-white/70 hover:border-gold hover:text-gold">
               <Plus className="h-4 w-4" /> Criar em {atual.rotulo}
             </button>
@@ -136,7 +138,7 @@ export function Kanban<T extends { id: string }>({
     <DndContext sensors={sensores} onDragStart={inicio} onDragEnd={fim} onDragCancel={() => setArrastando(null)}>
       <div className="-mx-4 flex select-none gap-3 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 [scrollbar-color:rgba(200,164,93,0.45)_transparent] [scrollbar-width:thin]">
         {colunas.map((c) => (
-          <Coluna key={c.valor} coluna={c} total={porColuna(c.valor).length} aoCriar={aoCriar}>
+          <Coluna key={c.valor} coluna={c} total={porColuna(c.valor).length} aoCriar={aoCriar && podeCriar(c.valor) ? aoCriar : undefined}>
             {porColuna(c.valor).map((i) => (
               <CartaoArrastavel key={i.id} id={i.id} desativado={!podeMover(i)}>
                 {card(i)}

@@ -114,6 +114,25 @@ export interface Lead {
   responsavel_id: string | null
   aceita_mensagens?: boolean
   created_at: string
+  updated_at?: string
+}
+
+export const origensLead = [
+  { valor: 'whatsapp', rotulo: 'WhatsApp' },
+  { valor: 'site', rotulo: 'Site' },
+  { valor: 'instagram', rotulo: 'Instagram' },
+  { valor: 'google_ads', rotulo: 'Google Ads' },
+  { valor: 'indicacao', rotulo: 'Indicação' },
+  { valor: 'outro', rotulo: 'Outro' },
+]
+
+// Cor de cada situação do lead no kanban.
+export const tomStatusLead: Record<string, 'azul' | 'ambar' | 'roxo' | 'verde' | 'vermelho'> = {
+  novo: 'azul',
+  em_atendimento: 'ambar',
+  proposta_enviada: 'roxo',
+  convertido: 'verde',
+  perdido: 'vermelho',
 }
 
 export interface Tarefa {
