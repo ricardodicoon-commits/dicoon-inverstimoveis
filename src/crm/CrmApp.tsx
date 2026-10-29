@@ -14,6 +14,7 @@ import { Confirmacoes } from './paginas/Confirmacoes'
 import { Entrada } from './paginas/Entrada'
 import { FollowUp } from './paginas/FollowUp'
 import { Equipe } from './paginas/Equipe'
+import { Mensagens } from './paginas/Mensagens'
 import { Negociacoes } from './paginas/Negociacoes'
 import { Painel } from './paginas/Painel'
 import { PortalCliente } from './paginas/PortalCliente'
@@ -79,6 +80,7 @@ function Portao() {
         <Route path="tarefas" element={<Tarefas />} />
         <Route path="confirmacoes" element={<Confirmacoes />} />
         <Route path="follow-up" element={<FollowUp />} />
+        <Route path="mensagens" element={<Mensagens />} />
         <Route path="clientes" element={<Clientes />} />
         <Route path="negociacoes" element={<Negociacoes />} />
         {ehAdmin && <Route path="equipe" element={<Equipe />} />}

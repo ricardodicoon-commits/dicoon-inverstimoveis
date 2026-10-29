@@ -27,6 +27,7 @@ export function Layout() {
         { para: '/app/confirmacoes', rotulo: 'Confirmações' },
         { para: '/app/tarefas', rotulo: 'Tarefas' },
         { para: '/app/follow-up', rotulo: 'Follow-up' },
+        { para: '/app/mensagens', rotulo: 'Mensagens' },
       ],
     },
     ...(ehAdmin
