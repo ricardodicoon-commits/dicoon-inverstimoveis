@@ -19,7 +19,13 @@ export function Layout() {
         { para: '/app/negociacoes', rotulo: 'Negociações' },
       ],
     },
-    { titulo: 'Secretária', links: [{ para: '/app/agenda', rotulo: 'Agenda' }] },
+    {
+      titulo: 'Secretária',
+      links: [
+        { para: '/app/agenda', rotulo: 'Agenda' },
+        { para: '/app/tarefas', rotulo: 'Tarefas' },
+      ],
+    },
     ...(ehAdmin
       ? [
           {

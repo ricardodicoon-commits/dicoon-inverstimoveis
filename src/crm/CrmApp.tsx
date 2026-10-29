@@ -15,6 +15,7 @@ import { Equipe } from './paginas/Equipe'
 import { Negociacoes } from './paginas/Negociacoes'
 import { Painel } from './paginas/Painel'
 import { PortalCliente } from './paginas/PortalCliente'
+import { Tarefas } from './paginas/Tarefas'
 import { TrocarSenha } from './TrocarSenha'
 import { Carregando } from './ui'
 
@@ -71,6 +72,7 @@ function Portao() {
         <Route index element={<Painel />} />
         <Route path="atendimento" element={<Atendimento />} />
         <Route path="agenda" element={<Agenda />} />
+        <Route path="tarefas" element={<Tarefas />} />
         <Route path="clientes" element={<Clientes />} />
         <Route path="negociacoes" element={<Negociacoes />} />
         {ehAdmin && <Route path="equipe" element={<Equipe />} />}

@@ -107,13 +107,56 @@ export interface Tarefa {
   id: string
   titulo: string
   descricao: string | null
+  tipo: string
+  categoria: string
   data_tarefa: string
+  hora_inicio: string | null
   prioridade: string
   status: string
   origem: string
+  recorrencia: string | null
+  resultado: string | null
+  motivo: string | null
+  proxima_acao: string | null
+  concluida_em: string | null
+  tarefa_pai_id: string | null
+  compromisso_id: string | null
+  negociacao_id: string | null
   lead_id: string | null
   responsavel_id: string | null
+  criado_por: string | null
+  responsavel?: { nome: string | null; email: string } | null
 }
+
+export const categoriasTarefa = [
+  { valor: 'comercial', rotulo: 'Comercial' },
+  { valor: 'credito', rotulo: 'Crédito' },
+  { valor: 'consorcios', rotulo: 'Consórcios' },
+  { valor: 'consignados', rotulo: 'Consignados' },
+  { valor: 'seguros', rotulo: 'Seguros' },
+  { valor: 'imobiliaria', rotulo: 'Imobiliária' },
+  { valor: 'documentacao', rotulo: 'Documentação' },
+  { valor: 'parcerias', rotulo: 'Parcerias' },
+  { valor: 'agenda', rotulo: 'Agenda' },
+  { valor: 'administrativo', rotulo: 'Administrativo' },
+  { valor: 'pessoal', rotulo: 'Pessoal' },
+  { valor: 'outros', rotulo: 'Outros' },
+]
+
+export const statusTarefa = [
+  { valor: 'pendente', rotulo: 'Pendente' },
+  { valor: 'em_andamento', rotulo: 'Em andamento' },
+  { valor: 'aguardando_terceiro', rotulo: 'Aguardando terceiro' },
+  { valor: 'concluida', rotulo: 'Concluída' },
+  { valor: 'cancelada', rotulo: 'Cancelada' },
+]
+
+export const recorrencias = [
+  { valor: '', rotulo: 'Não repete' },
+  { valor: 'diaria', rotulo: 'Todo dia' },
+  { valor: 'semanal', rotulo: 'Toda semana' },
+  { valor: 'mensal', rotulo: 'Todo mês' },
+]
 
 export interface Canal {
   id: string
