@@ -17,6 +17,7 @@ import { Equipe } from './paginas/Equipe'
 import { Negociacoes } from './paginas/Negociacoes'
 import { Painel } from './paginas/Painel'
 import { PortalCliente } from './paginas/PortalCliente'
+import { Secretaria } from './paginas/Secretaria'
 import { Tarefas } from './paginas/Tarefas'
 import { TrocarSenha } from './TrocarSenha'
 import { Carregando } from './ui'
@@ -73,6 +74,7 @@ function Portao() {
       <Route path="/app" element={<Layout />}>
         <Route index element={<Painel />} />
         <Route path="atendimento" element={<Atendimento />} />
+        <Route path="secretaria" element={<Secretaria />} />
         <Route path="agenda" element={<Agenda />} />
         <Route path="tarefas" element={<Tarefas />} />
         <Route path="confirmacoes" element={<Confirmacoes />} />
