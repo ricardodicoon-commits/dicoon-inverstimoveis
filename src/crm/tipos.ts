@@ -232,6 +232,20 @@ export const statusCompromisso = [
   { valor: 'cancelado', rotulo: 'Cancelado' },
 ]
 
+// Cor de cada situação do compromisso nas etiquetas.
+export const tomStatusCompromisso: Record<string, 'azul' | 'ambar' | 'roxo' | 'ciano' | 'verde' | 'vermelho' | 'cinza'> = {
+  a_confirmar: 'ambar',
+  aguardando_confirmacao: 'ambar',
+  confirmado: 'verde',
+  solicitou_remarcacao: 'roxo',
+  cancelamento_solicitado: 'vermelho',
+  reagendado: 'azul',
+  realizado: 'ciano',
+  nao_compareceu: 'vermelho',
+  follow_up_pendente: 'roxo',
+  cancelado: 'cinza',
+}
+
 // Compromissos ainda no caminho (para conflitos e validação de comparecimento).
 export const statusAtivosCompromisso = ['a_confirmar', 'aguardando_confirmacao', 'confirmado', 'solicitou_remarcacao', 'reagendado']
 

@@ -2,8 +2,9 @@ import { useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { erroAmigavel, useAoVivo } from '../dados'
-import { rotulo, statusAtivosCompromisso, statusCompromisso, type LembreteEnvio } from '../tipos'
-import { Aviso, Botao, Cabecalho, Carregando, Vazio, estiloCampo } from '../ui'
+import { BellRing, CircleHelp, MessageCircleQuestion, UserX } from 'lucide-react'
+import { rotulo, statusAtivosCompromisso, statusCompromisso, tomStatusCompromisso, type LembreteEnvio } from '../tipos'
+import { Aviso, Botao, Cabecalho, Carregando, CartaoIndicador, Etiqueta, Vazio, estiloCampo } from '../ui'
 
 // MODO ASSISTIDO: a Secretária prepara e avisa; quem envia é uma pessoa, que registra o envio
 // e a resposta. Nada aqui envia mensagem sozinho nem marca envio sem alguém registrar.
@@ -114,6 +115,13 @@ export function Confirmacoes() {
         </div>
       )}
 
+      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <CartaoIndicador rotulo="Lembretes a enviar" valor={aEnviar.length} icone={BellRing} tom="dourado" detalhe={`${aEnviar.filter((l) => new Date(l.enviar_em).getTime() <= agora).length} para agora`} />
+        <CartaoIndicador rotulo="Aguardando resposta" valor={aguardando.length} icone={MessageCircleQuestion} tom="azul" />
+        <CartaoIndicador rotulo="Sem validação de comparecimento" valor={semValidacao.data?.length ?? 0} icone={CircleHelp} tom="ambar" />
+        <CartaoIndicador rotulo="Follow-up de falta" valor={followUps.length} icone={UserX} tom="vermelho" />
+      </div>
+
       <div className="space-y-8">
         <Secao titulo="Lembretes a enviar" total={aEnviar.length} vazio="Nenhum lembrete a enviar.">
           {aEnviar.map((l) => {
@@ -183,8 +191,9 @@ function Cartao({ l, destaque, destaqueCor, children }: { l: LembreteEnvio; dest
         <p className={`text-xs font-semibold ${destaqueCor}`}>{destaque}</p>
       </div>
       {l.compromisso && (
-        <p className="text-xs text-muted">
-          {quando(l.compromisso.inicio)} · {rotulo(statusCompromisso, l.compromisso.status)}
+        <p className="flex flex-wrap items-center gap-2 text-xs text-muted">
+          {quando(l.compromisso.inicio)}
+          <Etiqueta tom={tomStatusCompromisso[l.compromisso.status] ?? 'cinza'}>{rotulo(statusCompromisso, l.compromisso.status)}</Etiqueta>
         </p>
       )}
       {children}
@@ -256,7 +265,10 @@ function Validacao({ c, ocupado, aoValidar }: { c: CompromissoAberto; ocupado: b
     <article className="space-y-3 rounded-2xl border border-line bg-coal p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="font-semibold text-white">{c.titulo}</p>
-        <p className="text-xs text-amber-300">{quando(c.inicio)} · {rotulo(statusCompromisso, c.status)}</p>
+        <p className="flex flex-wrap items-center gap-2 text-xs text-amber-300">
+          {quando(c.inicio)}
+          <Etiqueta tom={tomStatusCompromisso[c.status] ?? 'cinza'}>{rotulo(statusCompromisso, c.status)}</Etiqueta>
+        </p>
       </div>
       <input className={`${estiloCampo} py-2`} value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Observação (opcional)" />
       <div className="flex flex-wrap gap-2">

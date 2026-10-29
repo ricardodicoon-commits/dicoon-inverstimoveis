@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth'
 import { erroAmigavel, useAoVivo } from '../dados'
-import { Aviso, Botao, Cabecalho, Campo, Carregando, Modal, Vazio, estiloCampo } from '../ui'
+import { FileText, MessageSquareText } from 'lucide-react'
+import { Abas, Aviso, Botao, Cabecalho, Campo, Carregando, Etiqueta, Modal, Vazio, estiloCampo, type Tom } from '../ui'
 
 // Rascunhos de mensagem: a Secretária prepara, uma pessoa revisa, aprova e envia pelo próprio
 // WhatsApp. O sistema não envia nada e só registra "enviada" quando alguém informa.
@@ -24,6 +25,7 @@ const statusRascunho: Record<string, string> = {
   enviado_manual: 'Enviado (registrado)',
   descartado: 'Descartado',
 }
+const tomRascunho: Record<string, Tom> = { rascunho: 'ambar', aprovado: 'azul', enviado_manual: 'verde', descartado: 'cinza' }
 
 interface Modelo {
   id: string
@@ -91,13 +93,14 @@ export function Mensagens() {
       </p>
 
       {ehAdmin && (
-        <div className="mb-4 flex gap-2">
-          {(['rascunhos', 'modelos'] as const).map((a) => (
-            <button key={a} onClick={() => setAba(a)} className={`rounded-lg px-3 py-2 text-sm font-semibold ${aba === a ? 'bg-gold/15 text-gold' : 'text-white/70 hover:text-white'}`}>
-              {a === 'rascunhos' ? 'Rascunhos' : 'Modelos'}
-            </button>
-          ))}
-        </div>
+        <Abas
+          abas={[
+            { valor: 'rascunhos', rotulo: 'Rascunhos', icone: MessageSquareText },
+            { valor: 'modelos', rotulo: 'Modelos', icone: FileText },
+          ]}
+          ativa={aba}
+          aoMudar={setAba}
+        />
       )}
 
       {aba === 'modelos' && ehAdmin ? (
@@ -126,8 +129,9 @@ export function Mensagens() {
                   <button onClick={() => setAbrindo(r)} className="w-full rounded-xl border border-line bg-coal p-4 text-left hover:bg-white/5">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <p className="font-semibold text-white">{r.destinatario_nome || 'Sem destinatário'}</p>
-                      <span className="text-xs text-muted">
-                        {statusRascunho[r.status] ?? r.status} · {quando(r.updated_at)}
+                      <span className="flex items-center gap-2 text-xs text-muted">
+                        <Etiqueta tom={tomRascunho[r.status] ?? 'cinza'}>{statusRascunho[r.status] ?? r.status}</Etiqueta>
+                        {quando(r.updated_at)}
                       </span>
                     </div>
                     <p className="text-xs text-gold">{titulos[r.tipo] ?? r.tipo}</p>

@@ -9,10 +9,12 @@ import {
   rotulo,
   statusAtivosCompromisso,
   statusCompromisso,
+  tomStatusCompromisso,
   type Compromisso,
 } from '../tipos'
+import { CalendarDays, CalendarPlus, List } from 'lucide-react'
 import { chamarCalcom } from '../AgendarCalcom'
-import { Aviso, Botao, Cabecalho, Campo, Carregando, Modal, Vazio, estiloCampo } from '../ui'
+import { Abas, Aviso, Botao, Cabecalho, Campo, Carregando, Etiqueta, Modal, Vazio, estiloCampo } from '../ui'
 
 // Horários sempre no fuso de Brasília (sem horário de verão desde 2019: -03:00).
 const FUSO = 'America/Sao_Paulo'
@@ -87,20 +89,23 @@ export function Agenda() {
   return (
     <>
       <Cabecalho titulo="Agenda">
-        <Botao onClick={() => setEditando('novo')}>+ Novo compromisso</Botao>
+        <Botao onClick={() => setEditando('novo')}>
+          <span className="inline-flex items-center gap-1.5">
+            <CalendarPlus className="h-4 w-4" /> Novo compromisso
+          </span>
+        </Botao>
       </Cabecalho>
 
+      <Abas
+        abas={[
+          { valor: 'semana', rotulo: 'Semana', icone: CalendarDays },
+          { valor: 'lista', rotulo: 'Lista', icone: List },
+        ]}
+        ativa={modo}
+        aoMudar={setModo}
+      />
+
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        {(['semana', 'lista'] as const).map((m) => (
-          <button
-            key={m}
-            onClick={() => setModo(m)}
-            className={`rounded-lg px-3 py-2 text-sm font-semibold ${modo === m ? 'bg-gold/15 text-gold' : 'text-white/70 hover:text-white'}`}
-          >
-            {m === 'semana' ? 'Semana' : 'Lista'}
-          </button>
-        ))}
-        <span className="mx-2 h-5 w-px bg-line" />
         {modo === 'semana' ? (
           <>
             <Botao variante="secundario" onClick={() => setSemana(somarDias(semana, -7))} aria-label="Semana anterior">
@@ -171,11 +176,12 @@ export function Agenda() {
                     {dataLonga(diaSP(c.inicio))} · {horaSP(c.inicio)}–{horaSP(c.fim)}
                   </p>
                 </div>
-                <p className="mt-1 text-xs text-muted">
-                  {rotulo(categoriasCompromisso, c.categoria)} · {rotulo(statusCompromisso, c.status)}
-                  {c.local ? ` · ${c.local}` : ''}
-                  {(ehAdmin || ehSecretaria) && c.responsavel ? ` · ${c.responsavel.nome || c.responsavel.email}` : ''}
-                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted">
+                  <Etiqueta tom={tomStatusCompromisso[c.status] ?? 'cinza'}>{rotulo(statusCompromisso, c.status)}</Etiqueta>
+                  <Etiqueta tom="cinza">{rotulo(categoriasCompromisso, c.categoria)}</Etiqueta>
+                  {c.local && <span>{c.local}</span>}
+                  {(ehAdmin || ehSecretaria) && c.responsavel && <span>· {c.responsavel.nome || c.responsavel.email}</span>}
+                </div>
               </button>
             </li>
           ))}
@@ -211,7 +217,9 @@ function CartaoCompromisso({ c, aoAbrir }: { c: Compromisso; aoAbrir: () => void
         {horaSP(c.inicio)}–{horaSP(c.fim)}
       </p>
       <p className="line-clamp-2 text-sm font-semibold text-white">{c.titulo}</p>
-      <p className="text-[11px] text-muted">{rotulo(statusCompromisso, c.status)}</p>
+      <div className="mt-1">
+        <Etiqueta tom={tomStatusCompromisso[c.status] ?? 'cinza'}>{rotulo(statusCompromisso, c.status)}</Etiqueta>
+      </div>
     </button>
   )
 }

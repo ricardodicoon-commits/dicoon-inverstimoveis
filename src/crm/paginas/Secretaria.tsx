@@ -4,8 +4,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth'
 import { erroAmigavel, useAoVivo } from '../dados'
-import { categoriasTarefa, rotulo, statusAtivosCompromisso, statusCompromisso, type Compromisso, type Tarefa } from '../tipos'
-import { Aviso, Botao, Cabecalho, Carregando, estiloCampo } from '../ui'
+import { categoriasTarefa, rotulo, statusAtivosCompromisso, statusCompromisso, tomStatusCompromisso, type Compromisso, type Tarefa } from '../tipos'
+import { AlarmClock, BellRing, CalendarCheck, CalendarDays, CircleHelp, ListTodo, Repeat, RotateCcw } from 'lucide-react'
+import { Aviso, Botao, Cabecalho, Carregando, CartaoIndicador, Etiqueta, estiloCampo, type Tom } from '../ui'
 
 // Resumo do dia da Secretária: só números reais, calculados ao abrir a página.
 
@@ -106,15 +107,15 @@ export function Secretaria() {
     { r: 'Follow-ups concluídos', v: feitas.filter((t) => t.tipo === 'follow_up' && noPeriodo(t.concluida_em)).length },
   ]
 
-  const indicadores = [
-    { r: 'Compromissos hoje', v: deHoje.length, link: '/app/agenda', cor: 'text-white' },
-    { r: 'A confirmar', v: aConfirmar.length, link: '/app/confirmacoes', cor: 'text-amber-300' },
-    { r: 'Lembretes para enviar agora', v: lembretesAgora, link: '/app/confirmacoes', cor: 'text-gold' },
-    { r: 'Sem validação de comparecimento', v: semValidacao.length, link: '/app/confirmacoes', cor: 'text-amber-300' },
-    { r: 'Tarefas pendentes', v: tarefas.length, link: '/app/tarefas', cor: 'text-white' },
-    { r: 'Tarefas atrasadas', v: atrasadas.length, link: '/app/tarefas', cor: 'text-red-300' },
-    { r: 'Follow-ups de hoje', v: followHoje.length, link: '/app/follow-up', cor: 'text-gold' },
-    { r: 'Retornos atrasados', v: followAtrasados.length, link: '/app/follow-up', cor: 'text-red-300' },
+  const indicadores: { r: string; v: number; link: string; tom: Tom; icone: typeof ListTodo }[] = [
+    { r: 'Compromissos hoje', v: deHoje.length, link: '/app/agenda', tom: 'azul', icone: CalendarDays },
+    { r: 'A confirmar', v: aConfirmar.length, link: '/app/confirmacoes', tom: 'ambar', icone: CalendarCheck },
+    { r: 'Lembretes para enviar agora', v: lembretesAgora, link: '/app/confirmacoes', tom: 'dourado', icone: BellRing },
+    { r: 'Sem validação de comparecimento', v: semValidacao.length, link: '/app/confirmacoes', tom: 'ambar', icone: CircleHelp },
+    { r: 'Tarefas pendentes', v: tarefas.length, link: '/app/tarefas', tom: 'roxo', icone: ListTodo },
+    { r: 'Tarefas atrasadas', v: atrasadas.length, link: '/app/tarefas', tom: 'vermelho', icone: AlarmClock },
+    { r: 'Follow-ups de hoje', v: followHoje.length, link: '/app/follow-up', tom: 'dourado', icone: Repeat },
+    { r: 'Retornos atrasados', v: followAtrasados.length, link: '/app/follow-up', tom: 'vermelho', icone: RotateCcw },
   ]
 
   return (
@@ -124,9 +125,8 @@ export function Secretaria() {
 
       <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
         {indicadores.map((i) => (
-          <Link key={i.r} to={i.link} className="rounded-2xl border border-line bg-coal p-4 hover:border-gold/60">
-            <p className={`text-3xl font-bold ${i.cor}`}>{i.v}</p>
-            <p className="mt-1 text-xs text-muted">{i.r}</p>
+          <Link key={i.r} to={i.link}>
+            <CartaoIndicador rotulo={i.r} valor={i.v} icone={i.icone} tom={i.tom} />
           </Link>
         ))}
       </div>
@@ -259,9 +259,9 @@ function LinhaCompromisso({ c, comDia }: { c: Compromisso; comDia?: boolean }) {
     <li className="flex items-baseline justify-between gap-3 rounded-xl bg-ink p-3">
       <div className="min-w-0">
         <p className="truncate font-semibold text-white">{c.titulo}</p>
-        <p className="text-xs text-muted">
-          {rotulo(statusCompromisso, c.status)}
-          {c.local ? ` · ${c.local}` : ''}
+        <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
+          <Etiqueta tom={tomStatusCompromisso[c.status] ?? 'cinza'}>{rotulo(statusCompromisso, c.status)}</Etiqueta>
+          {c.local && <span className="truncate">{c.local}</span>}
         </p>
       </div>
       <p className="shrink-0 text-xs font-semibold text-gold">

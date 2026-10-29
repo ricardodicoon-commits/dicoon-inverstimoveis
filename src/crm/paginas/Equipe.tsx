@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth'
 import { erroAmigavel, useAoVivo } from '../dados'
 import type { Papel, Perfil } from '../tipos'
-import { Aviso, Botao, Cabecalho, Carregando, estiloCampo } from '../ui'
+import { Aviso, Botao, Cabecalho, Carregando, Etiqueta, estiloCampo } from '../ui'
 
 const chave = ['equipe']
 
@@ -44,15 +44,24 @@ export function Equipe() {
   function Linha({ p }: { p: Perfil }) {
     const souEu = p.id === eu?.id
     return (
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-coal p-4">
+      <div className={`flex flex-wrap items-center gap-3 rounded-xl border border-line bg-coal p-4 ${p.aprovado && !p.ativo ? 'opacity-60' : ''}`}>
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold/20 text-sm font-bold text-gold">
+          {(p.nome || p.email)
+            .split(/\s+/)
+            .slice(0, 2)
+            .map((x) => x[0]?.toUpperCase())
+            .join('')}
+        </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-white">
-            {p.nome || p.email} {souEu && <span className="text-xs text-gold">(você)</span>}
+          <p className="flex flex-wrap items-center gap-2 font-semibold text-white">
+            <span className="truncate">{p.nome || p.email}</span>
+            {souEu && <Etiqueta tom="dourado">você</Etiqueta>}
+            {p.aprovado && !p.ativo && <Etiqueta tom="vermelho">Desativado</Etiqueta>}
           </p>
           <p className="truncate text-sm text-muted">{p.email}</p>
         </div>
         {p.role === 'cliente' ? (
-          <span className="rounded-full bg-gold/10 px-3 py-1 text-xs text-gold">Cliente</span>
+          <Etiqueta tom="dourado">Cliente</Etiqueta>
         ) : (
           <select
             className={`${estiloCampo} w-36`}
