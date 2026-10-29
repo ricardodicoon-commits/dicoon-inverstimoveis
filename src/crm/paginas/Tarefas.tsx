@@ -1,10 +1,12 @@
 import { useDeferredValue, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { CalendarClock, Columns3, List, Repeat } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth'
 import { erroAmigavel, limparBusca, useAoVivo } from '../dados'
+import { Kanban } from '../Kanban'
 import { categoriasTarefa, prioridades, recorrencias, rotulo, statusTarefa, type Tarefa } from '../tipos'
-import { Aviso, Botao, Cabecalho, Campo, Carregando, Modal, Vazio, estiloCampo } from '../ui'
+import { Abas, Aviso, Botao, Cabecalho, Campo, Carregando, Etiqueta, Modal, Vazio, estiloCampo, type Tom } from '../ui'
 
 const FUSO = 'America/Sao_Paulo'
 const hojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: FUSO }).format(new Date())
@@ -14,7 +16,12 @@ function somarDias(dia: string, n: number) {
   return d.toISOString().slice(0, 10)
 }
 const dataCurta = (dia: string) =>
-  new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC', weekday: 'short', day: '2-digit', month: '2-digit' }).format(new Date(`${dia}T00:00:00Z`))
+  new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'UTC',
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit',
+  }).format(new Date(`${dia}T00:00:00Z`))
 
 const corPrioridade: Record<string, string> = {
   urgente: 'bg-red-500/15 text-red-300',
@@ -23,7 +30,36 @@ const corPrioridade: Record<string, string> = {
   baixa: 'bg-white/5 text-muted',
 }
 const abertas = ['pendente', 'em_andamento', 'aguardando_terceiro']
-const pesoPrioridade: Record<string, number> = { urgente: 0, alta: 1, media: 2, baixa: 3 }
+const pesoPrioridade: Record<string, number> = {
+  urgente: 0,
+  alta: 1,
+  media: 2,
+  baixa: 3,
+}
+const tomPrioridade: Record<string, Tom> = {
+  urgente: 'vermelho',
+  alta: 'ambar',
+  media: 'cinza',
+  baixa: 'cinza',
+}
+// Colunas do kanban: as situações em aberto e as concluídas dos últimos 14 dias.
+const colunasKanban = [
+  { valor: 'pendente', rotulo: 'Pendente', tom: 'azul' as Tom },
+  { valor: 'em_andamento', rotulo: 'Em andamento', tom: 'ambar' as Tom },
+  {
+    valor: 'aguardando_terceiro',
+    rotulo: 'Aguardando terceiro',
+    tom: 'roxo' as Tom,
+  },
+  { valor: 'concluida', rotulo: 'Concluída (14 dias)', tom: 'verde' as Tom },
+]
+const iniciais = (nome: string) =>
+  nome
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join('')
 
 // tarefas.responsavel_id não tem chave estrangeira no banco: os nomes vêm da equipe à parte.
 function useNomesEquipe(ativo: boolean) {
@@ -41,6 +77,8 @@ function useNomesEquipe(ativo: boolean) {
 // Central de tarefas: complementa (não substitui) os funis do CRM.
 export function Tarefas() {
   const { perfil, ehAdmin, ehSecretaria } = useAuth()
+  const qc = useQueryClient()
+  const [visao, setVisao] = useState<'kanban' | 'lista'>('kanban')
   const [busca, setBusca] = useState('')
   const termo = limparBusca(useDeferredValue(busca))
   const [situacao, setSituacao] = useState<'abertas' | 'concluidas' | 'todas'>('abertas')
@@ -50,22 +88,26 @@ export function Tarefas() {
   const [abrindo, setAbrindo] = useState<Tarefa | null>(null)
   const hoje = hojeSP()
 
+  const chave = ['tarefas', 'central', visao, situacao, categoria, prioridade, termo]
   const { data, isPending, error } = useQuery({
-    queryKey: ['tarefas', 'central', situacao, categoria, prioridade, termo],
+    queryKey: chave,
     queryFn: async () => {
       let q = supabase.from('tarefas').select('*').is('tarefa_pai_id', null)
-      if (situacao === 'abertas') q = q.in('status', abertas)
-      if (situacao === 'concluidas') q = q.in('status', ['concluida', 'cancelada'])
+      if (visao === 'kanban') {
+        const corte = new Date(Date.now() - 14 * 86_400_000).toISOString()
+        q = q.in('status', [...abertas, 'concluida']).or(`status.neq.concluida,concluida_em.gte.${corte}`)
+      } else if (situacao === 'abertas') q = q.in('status', abertas)
+      if (visao === 'lista' && situacao === 'concluidas') q = q.in('status', ['concluida', 'cancelada'])
       if (categoria) q = q.eq('categoria', categoria)
       if (prioridade) q = q.eq('prioridade', prioridade)
       if (termo) q = q.ilike('titulo', `%${termo}%`)
-      q = q.order('data_tarefa', { ascending: situacao === 'abertas' })
+      q = q.order('data_tarefa', {
+        ascending: visao === 'kanban' || situacao === 'abertas',
+      })
       const { data, error } = await q.limit(300)
       if (error) throw error
       // Mesmo prazo: urgente primeiro (o banco ordenaria a prioridade por ordem alfabética).
-      return (data as Tarefa[]).sort(
-        (a, b) => (a.data_tarefa === b.data_tarefa ? (pesoPrioridade[a.prioridade] ?? 9) - (pesoPrioridade[b.prioridade] ?? 9) : 0),
-      )
+      return (data as Tarefa[]).sort((a, b) => (a.data_tarefa === b.data_tarefa ? (pesoPrioridade[a.prioridade] ?? 9) - (pesoPrioridade[b.prioridade] ?? 9) : 0))
     },
   })
   useAoVivo('tarefas', ['tarefas'])
@@ -74,19 +116,89 @@ export function Tarefas() {
   const lista = data ?? []
   const podeEditar = (t: Tarefa) => ehAdmin || t.criado_por === perfil?.id || (t.responsavel_id === perfil?.id && !ehSecretaria)
 
+  // Arrastar muda a situação na hora; se o banco recusar, volta como estava.
+  const mover = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase.from('tarefas').update({ status }).eq('id', id)
+      if (error) throw error
+    },
+    onMutate: async ({ id, status }) => {
+      await qc.cancelQueries({ queryKey: chave })
+      const antes = qc.getQueryData<Tarefa[]>(chave)
+      qc.setQueryData<Tarefa[]>(chave, (l) => l?.map((x) => (x.id === id ? { ...x, status } : x)))
+      return { antes }
+    },
+    onError: (_e, _v, ctx) => qc.setQueryData(chave, ctx?.antes),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['tarefas'] }),
+  })
+
+  const cartao = (t: Tarefa) => {
+    const atrasada = t.status !== 'concluida' && t.data_tarefa < hoje
+    const resp = t.responsavel_id ? nomes.data?.[t.responsavel_id] : undefined
+    return (
+      <button onClick={() => setAbrindo(t)} className="block w-full p-3 text-left">
+        <div className="flex items-start justify-between gap-2">
+          <p className={`font-semibold leading-snug ${t.status === 'concluida' ? 'text-muted line-through' : 'text-white'}`}>{t.titulo}</p>
+          {resp && (
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gold/20 text-[10px] font-bold text-gold" title={`Responsável: ${resp}`}>
+              {iniciais(resp)}
+            </span>
+          )}
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          <Etiqueta tom={tomPrioridade[t.prioridade] ?? 'cinza'}>{rotulo(prioridades, t.prioridade)}</Etiqueta>
+          <Etiqueta tom="cinza">{rotulo(categoriasTarefa, t.categoria)}</Etiqueta>
+          {t.tipo === 'follow_up' && <Etiqueta tom="dourado">Follow-up</Etiqueta>}
+        </div>
+        <p className={`mt-2 flex items-center gap-1.5 text-[11px] ${atrasada ? 'font-semibold text-rose-300' : 'text-white/50'}`}>
+          <CalendarClock className="h-3.5 w-3.5" />
+          {atrasada ? 'Atrasada · ' : ''}
+          {dataCurta(t.data_tarefa)}
+          {t.hora_inicio ? ` · ${t.hora_inicio.slice(0, 5)}` : ''}
+          {t.recorrencia && <Repeat className="ml-1 h-3.5 w-3.5" aria-label="Repete" />}
+        </p>
+      </button>
+    )
+  }
+
   // Na visão de abertas, agrupa pelo prazo para destacar o que está atrasado.
   const grupos =
     situacao === 'abertas'
       ? [
-          { titulo: 'Atrasadas', cor: 'text-red-300', itens: lista.filter((t) => t.data_tarefa < hoje) },
-          { titulo: 'Hoje', cor: 'text-gold', itens: lista.filter((t) => t.data_tarefa === hoje) },
-          { titulo: 'Próximos 7 dias', cor: 'text-white', itens: lista.filter((t) => t.data_tarefa > hoje && t.data_tarefa <= somarDias(hoje, 7)) },
-          { titulo: 'Depois', cor: 'text-muted', itens: lista.filter((t) => t.data_tarefa > somarDias(hoje, 7)) },
+          {
+            titulo: 'Atrasadas',
+            cor: 'text-red-300',
+            itens: lista.filter((t) => t.data_tarefa < hoje),
+          },
+          {
+            titulo: 'Hoje',
+            cor: 'text-gold',
+            itens: lista.filter((t) => t.data_tarefa === hoje),
+          },
+          {
+            titulo: 'Próximos 7 dias',
+            cor: 'text-white',
+            itens: lista.filter((t) => t.data_tarefa > hoje && t.data_tarefa <= somarDias(hoje, 7)),
+          },
+          {
+            titulo: 'Depois',
+            cor: 'text-muted',
+            itens: lista.filter((t) => t.data_tarefa > somarDias(hoje, 7)),
+          },
         ]
-      : [{ titulo: situacao === 'concluidas' ? 'Concluídas e canceladas' : 'Todas', cor: 'text-white', itens: lista }]
+      : [
+          {
+            titulo: situacao === 'concluidas' ? 'Concluídas e canceladas' : 'Todas',
+            cor: 'text-white',
+            itens: lista,
+          },
+        ]
 
   const porArea = categoriasTarefa
-    .map((c) => ({ ...c, total: lista.filter((t) => t.categoria === c.valor).length }))
+    .map((c) => ({
+      ...c,
+      total: lista.filter((t) => t.categoria === c.valor).length,
+    }))
     .filter((c) => c.total > 0)
 
   return (
@@ -95,13 +207,24 @@ export function Tarefas() {
         <Botao onClick={() => setEditando('nova')}>+ Nova tarefa</Botao>
       </Cabecalho>
 
+      <Abas
+        abas={[
+          { valor: 'kanban', rotulo: 'Kanban', icone: Columns3 },
+          { valor: 'lista', rotulo: 'Lista', icone: List },
+        ]}
+        ativa={visao}
+        aoMudar={setVisao}
+      />
+
       <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <input className={estiloCampo} placeholder="Buscar pelo título" value={busca} onChange={(e) => setBusca(e.target.value)} />
-        <select className={estiloCampo} value={situacao} onChange={(e) => setSituacao(e.target.value as typeof situacao)} aria-label="Situação">
-          <option value="abertas">Em aberto</option>
-          <option value="concluidas">Concluídas e canceladas</option>
-          <option value="todas">Todas</option>
-        </select>
+        {visao === 'lista' && (
+          <select className={estiloCampo} value={situacao} onChange={(e) => setSituacao(e.target.value as typeof situacao)} aria-label="Situação">
+            <option value="abertas">Em aberto</option>
+            <option value="concluidas">Concluídas e canceladas</option>
+            <option value="todas">Todas</option>
+          </select>
+        )}
         <select className={estiloCampo} value={categoria} onChange={(e) => setCategoria(e.target.value)} aria-label="Área">
           <option value="">Todas as áreas</option>
           {categoriasTarefa.map((c) => (
@@ -123,21 +246,37 @@ export function Tarefas() {
       {!!porArea.length && !categoria && (
         <div className="mb-4 flex flex-wrap gap-2">
           {porArea.map((c) => (
-            <button key={c.valor} onClick={() => setCategoria(c.valor)} className="rounded-full border border-line px-3 py-1 text-xs text-white/80 hover:border-gold hover:text-gold">
+            <button
+              key={c.valor}
+              onClick={() => setCategoria(c.valor)}
+              className="rounded-full border border-line px-3 py-1 text-xs text-white/80 hover:border-gold hover:text-gold"
+            >
               {c.rotulo} <span className="text-muted">({c.total})</span>
             </button>
           ))}
         </div>
       )}
 
-      {error && (
+      {(error || mover.error) && (
         <div className="mb-4">
-          <Aviso>{erroAmigavel(error)}</Aviso>
+          <Aviso>{mover.error ? 'Você não pode mover esta tarefa; ela voltou para a situação anterior.' : erroAmigavel(error)}</Aviso>
         </div>
       )}
 
       {isPending ? (
         <Carregando />
+      ) : visao === 'kanban' ? (
+        <Kanban
+          colunas={colunasKanban}
+          itens={lista}
+          colunaDe={(t) => t.status}
+          card={cartao}
+          podeMover={podeEditar}
+          aoMover={(t, status) => mover.mutate({ id: t.id, status })}
+          aoCriar={() => setEditando('nova')}
+          podeCriar={(c) => c === 'pendente'}
+          vazioColuna="Nenhuma tarefa aqui."
+        />
       ) : !lista.length ? (
         <Vazio>{termo || categoria || prioridade ? 'Nenhuma tarefa com esses filtros.' : 'Nenhuma tarefa por aqui.'}</Vazio>
       ) : (
@@ -152,7 +291,10 @@ export function Tarefas() {
                 <ul className="space-y-2">
                   {g.itens.map((t) => (
                     <li key={t.id}>
-                      <button onClick={() => setAbrindo(t)} className="flex w-full flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-coal p-4 text-left hover:bg-white/5">
+                      <button
+                        onClick={() => setAbrindo(t)}
+                        className="flex w-full flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-coal p-4 text-left hover:bg-white/5"
+                      >
                         <div className="min-w-0">
                           <p className={`font-semibold ${t.status === 'concluida' ? 'text-muted line-through' : 'text-white'}`}>{t.titulo}</p>
                           <p className="text-xs text-muted">
@@ -189,19 +331,7 @@ export function Tarefas() {
   )
 }
 
-function Detalhe({
-  t,
-  nomeResponsavel,
-  podeEditar,
-  aoFechar,
-  aoEditar,
-}: {
-  t: Tarefa
-  nomeResponsavel?: string
-  podeEditar: boolean
-  aoFechar: () => void
-  aoEditar: () => void
-}) {
+function Detalhe({ t, nomeResponsavel, podeEditar, aoFechar, aoEditar }: { t: Tarefa; nomeResponsavel?: string; podeEditar: boolean; aoFechar: () => void; aoEditar: () => void }) {
   const { perfil } = useAuth()
   const qc = useQueryClient()
   const [resultado, setResultado] = useState(t.resultado ?? '')
@@ -272,7 +402,16 @@ function Detalhe({
             ['Área', rotulo(categoriasTarefa, t.categoria)],
             ['Repete', t.recorrencia ? rotulo(recorrencias, t.recorrencia) : null],
             ['Responsável', nomeResponsavel ?? null],
-            ['Concluída em', t.concluida_em ? new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, dateStyle: 'short', timeStyle: 'short' }).format(new Date(t.concluida_em)) : null],
+            [
+              'Concluída em',
+              t.concluida_em
+                ? new Intl.DateTimeFormat('pt-BR', {
+                    timeZone: FUSO,
+                    dateStyle: 'short',
+                    timeStyle: 'short',
+                  }).format(new Date(t.concluida_em))
+                : null,
+            ],
           ] as [string, string | null][]
         )
           .filter(([, v]) => v)
@@ -295,7 +434,14 @@ function Detalhe({
                 type="checkbox"
                 checked={s.status === 'concluida'}
                 disabled={!podeEditar}
-                onChange={(e) => atualizar.mutate({ id: s.id, campos: { status: e.target.checked ? 'concluida' : 'pendente' } })}
+                onChange={(e) =>
+                  atualizar.mutate({
+                    id: s.id,
+                    campos: {
+                      status: e.target.checked ? 'concluida' : 'pendente',
+                    },
+                  })
+                }
                 aria-label={`Concluir ${s.titulo}`}
               />
               <span className={s.status === 'concluida' ? 'text-muted line-through' : 'text-white'}>{s.titulo}</span>
@@ -329,21 +475,58 @@ function Detalhe({
           <div className="flex flex-wrap gap-2">
             {aberta ? (
               <>
-                <Botao onClick={() => atualizar.mutate({ id: t.id, campos: { status: 'concluida', resultado: resultado || null } })}>Concluir</Botao>
+                <Botao
+                  onClick={() =>
+                    atualizar.mutate({
+                      id: t.id,
+                      campos: {
+                        status: 'concluida',
+                        resultado: resultado || null,
+                      },
+                    })
+                  }
+                >
+                  Concluir
+                </Botao>
                 {t.status !== 'em_andamento' && (
-                  <Botao variante="secundario" onClick={() => atualizar.mutate({ id: t.id, campos: { status: 'em_andamento' } })}>
+                  <Botao
+                    variante="secundario"
+                    onClick={() =>
+                      atualizar.mutate({
+                        id: t.id,
+                        campos: { status: 'em_andamento' },
+                      })
+                    }
+                  >
                     Em andamento
                   </Botao>
                 )}
                 {t.status !== 'aguardando_terceiro' && (
-                  <Botao variante="secundario" onClick={() => atualizar.mutate({ id: t.id, campos: { status: 'aguardando_terceiro' } })}>
+                  <Botao
+                    variante="secundario"
+                    onClick={() =>
+                      atualizar.mutate({
+                        id: t.id,
+                        campos: { status: 'aguardando_terceiro' },
+                      })
+                    }
+                  >
                     Aguardando terceiro
                   </Botao>
                 )}
                 <Botao variante="secundario" onClick={aoEditar}>
                   Editar
                 </Botao>
-                <Botao variante="perigo" onClick={() => confirm('Cancelar esta tarefa?') && atualizar.mutate({ id: t.id, campos: { status: 'cancelada' } })}>
+                <Botao
+                  variante="perigo"
+                  onClick={() =>
+                    confirm('Cancelar esta tarefa?') &&
+                    atualizar.mutate({
+                      id: t.id,
+                      campos: { status: 'cancelada' },
+                    })
+                  }
+                >
                   Cancelar
                 </Botao>
               </>
@@ -399,7 +582,11 @@ function FormTarefa({ tarefa, escolheResponsavel, aoFechar }: { tarefa: Tarefa |
         .order('updated_at', { ascending: false })
         .limit(200)
       if (error) throw error
-      return data as unknown as { id: string; cliente: { nome_completo: string } | null; lead: { nome: string } | null }[]
+      return data as unknown as {
+        id: string
+        cliente: { nome_completo: string } | null
+        lead: { nome: string } | null
+      }[]
     },
   })
 

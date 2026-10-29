@@ -1,10 +1,12 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AlarmClock, CalendarCheck, CalendarClock, CalendarX, Columns3, List } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth'
 import { erroAmigavel, useAoVivo } from '../dados'
-import { categoriasTarefa, etapaFinal, interesses, rotulo, rotuloEtapa, type Tarefa } from '../tipos'
-import { Aviso, Botao, Cabecalho, Campo, Carregando, Modal, Vazio, estiloCampo } from '../ui'
+import { Kanban } from '../Kanban'
+import { categoriasTarefa, etapaFinal, interesses, rotulo, rotuloEtapa, tomEtapa, type Tarefa } from '../tipos'
+import { Abas, Aviso, Botao, Cabecalho, Campo, Carregando, CartaoIndicador, Etiqueta, Modal, Vazio, estiloCampo, type Tom } from '../ui'
 
 // Follow-up comercial: retornos ligados às negociações do CRM. Não cria funil novo
 // e nunca muda a etapa da negociação. Mensagens são rascunhos: quem envia é uma pessoa.
@@ -12,19 +14,17 @@ import { Aviso, Botao, Cabecalho, Campo, Carregando, Modal, Vazio, estiloCampo }
 const FUSO = 'America/Sao_Paulo'
 const hojeSP = () => new Intl.DateTimeFormat('en-CA', { timeZone: FUSO }).format(new Date())
 const dataCurta = (dia: string) =>
-  new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC', weekday: 'short', day: '2-digit', month: '2-digit' }).format(new Date(`${dia}T00:00:00Z`))
+  new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'UTC',
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit',
+  }).format(new Date(`${dia}T00:00:00Z`))
 const diasDesde = (iso: string) => Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
 const linkWhats = (tel: string, texto: string) => `https://wa.me/${tel.startsWith('55') ? tel : `55${tel}`}?text=${encodeURIComponent(texto)}`
 const digitos = (t: string | null | undefined) => (t ?? '').replace(/\D/g, '')
 
-const motivos = [
-  'Pediu simulação',
-  'Aguardando documentos',
-  'Proposta sem retorno',
-  'Aguardando retorno da instituição',
-  'Retomar negociação',
-  'Outro',
-]
+const motivos = ['Pediu simulação', 'Aguardando documentos', 'Proposta sem retorno', 'Aguardando retorno da instituição', 'Retomar negociação', 'Outro']
 const abertas = ['pendente', 'em_andamento', 'aguardando_terceiro']
 
 interface Neg {
@@ -33,17 +33,38 @@ interface Neg {
   updated_at: string
   responsavel_id: string | null
   cliente: { nome_completo: string; telefone: string | null } | null
-  lead: { nome: string; telefone: string | null; tipo_interesse: string } | null
+  lead: {
+    nome: string
+    telefone: string | null
+    tipo_interesse: string
+  } | null
 }
 const nomeNeg = (n?: Neg) => n?.cliente?.nome_completo ?? n?.lead?.nome ?? 'Negociação'
 const telNeg = (n?: Neg) => digitos(n?.cliente?.telefone ?? n?.lead?.telefone) || null
 
+// Kanban por prazo (não se arrasta: o prazo muda pelo próprio follow-up).
+const colunasPrazo = [
+  { valor: 'vencidos', rotulo: 'Vencidos', tom: 'vermelho' as Tom },
+  { valor: 'hoje', rotulo: 'Hoje', tom: 'dourado' as Tom },
+  { valor: 'proximos', rotulo: 'Próximos', tom: 'azul' as Tom },
+  {
+    valor: 'sem_retorno',
+    rotulo: 'Sem retorno (7+ dias)',
+    tom: 'ambar' as Tom,
+  },
+]
+type ItemKanban = { id: string; coluna: string; t?: Tarefa; n?: Neg }
+
 export function FollowUp() {
   const { perfil, ehAdmin, ehSecretaria } = useAuth()
   const qc = useQueryClient()
+  const [visao, setVisao] = useState<'kanban' | 'lista'>('kanban')
   const [novo, setNovo] = useState<string | null>(null) // id da negociação ('' = escolher)
   const [abrindo, setAbrindo] = useState<Tarefa | null>(null)
-  const [aviso, setAviso] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null)
+  const [aviso, setAviso] = useState<{
+    tipo: 'ok' | 'erro'
+    texto: string
+  } | null>(null)
   const hoje = hojeSP()
 
   const followUps = useQuery({
@@ -76,10 +97,66 @@ export function FollowUp() {
   const esquecidas = (negociacoes.data ?? []).filter((n) => n.etapa !== etapaFinal && !comFollowUp.has(n.id) && diasDesde(n.updated_at) >= 7)
 
   const grupos = [
-    { titulo: 'Vencidos', cor: 'text-red-300', itens: lista.filter((t) => t.data_tarefa < hoje) },
-    { titulo: 'Hoje', cor: 'text-gold', itens: lista.filter((t) => t.data_tarefa === hoje) },
-    { titulo: 'Próximos', cor: 'text-white', itens: lista.filter((t) => t.data_tarefa > hoje) },
+    {
+      titulo: 'Vencidos',
+      cor: 'text-red-300',
+      itens: lista.filter((t) => t.data_tarefa < hoje),
+    },
+    {
+      titulo: 'Hoje',
+      cor: 'text-gold',
+      itens: lista.filter((t) => t.data_tarefa === hoje),
+    },
+    {
+      titulo: 'Próximos',
+      cor: 'text-white',
+      itens: lista.filter((t) => t.data_tarefa > hoje),
+    },
   ]
+
+  const itensKanban: ItemKanban[] = [
+    ...grupos.flatMap((g, i) =>
+      g.itens.map((t) => ({
+        id: t.id,
+        coluna: colunasPrazo[i].valor,
+        t,
+        n: t.negociacao_id ? negs[t.negociacao_id] : undefined,
+      })),
+    ),
+    ...esquecidas.map((n) => ({ id: `neg-${n.id}`, coluna: 'sem_retorno', n })),
+  ]
+
+  const cartao = ({ t, n }: ItemKanban) =>
+    t ? (
+      <button onClick={() => setAbrindo(t)} className="block w-full p-3 text-left">
+        <p className="font-semibold leading-snug text-white">{n ? nomeNeg(n) : t.titulo}</p>
+        <p className="mt-1 text-xs text-muted">{t.motivo ?? t.titulo}</p>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {n && <Etiqueta tom={tomEtapa[n.etapa] ?? 'cinza'}>{rotuloEtapa(n.etapa)}</Etiqueta>}
+          <Etiqueta tom="cinza">{rotulo(categoriasTarefa, t.categoria)}</Etiqueta>
+        </div>
+        {t.proxima_acao && <p className="mt-2 line-clamp-2 text-xs text-white/70">Próxima ação: {t.proxima_acao}</p>}
+        <p className={`mt-2 flex items-center gap-1.5 text-[11px] ${t.data_tarefa < hoje ? 'font-semibold text-rose-300' : 'text-white/50'}`}>
+          <CalendarClock className="h-3.5 w-3.5" />
+          {dataCurta(t.data_tarefa)}
+        </p>
+      </button>
+    ) : (
+      <div className="p-3">
+        <p className="font-semibold leading-snug text-white">{nomeNeg(n)}</p>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {n && <Etiqueta tom={tomEtapa[n.etapa] ?? 'cinza'}>{rotuloEtapa(n.etapa)}</Etiqueta>}
+          {n?.lead && <Etiqueta tom="cinza">{rotulo(interesses, n.lead.tipo_interesse)}</Etiqueta>}
+          {n && <Etiqueta tom="vermelho">Parada há {diasDesde(n.updated_at)} dias</Etiqueta>}
+        </div>
+        <button
+          onClick={() => n && setNovo(n.id)}
+          className="mt-3 w-full rounded-lg border border-line py-1.5 text-xs font-semibold text-white/80 hover:border-gold hover:text-gold"
+        >
+          Criar follow-up
+        </button>
+      </div>
+    )
 
   if (followUps.isPending || negociacoes.isPending) return <Carregando />
 
@@ -102,61 +179,78 @@ export function FollowUp() {
         </div>
       )}
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-4">
-        {[
-          { r: 'Vencidos', v: grupos[0].itens.length, c: 'text-red-300' },
-          { r: 'Para hoje', v: grupos[1].itens.length, c: 'text-gold' },
-          { r: 'Próximos', v: grupos[2].itens.length, c: 'text-white' },
-          { r: 'Negociações sem retorno', v: esquecidas.length, c: 'text-amber-300' },
-        ].map((x) => (
-          <div key={x.r} className="rounded-2xl border border-line bg-coal p-4">
-            <p className={`text-3xl font-bold ${x.c}`}>{x.v}</p>
-            <p className="text-xs text-muted">{x.r}</p>
-          </div>
-        ))}
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <CartaoIndicador rotulo="Vencidos" valor={grupos[0].itens.length} icone={CalendarX} tom="vermelho" />
+        <CartaoIndicador rotulo="Para hoje" valor={grupos[1].itens.length} icone={AlarmClock} tom="dourado" />
+        <CartaoIndicador rotulo="Próximos" valor={grupos[2].itens.length} icone={CalendarCheck} tom="azul" />
+        <CartaoIndicador rotulo="Negociações sem retorno" valor={esquecidas.length} icone={CalendarClock} tom="ambar" />
       </div>
 
-      <div className="space-y-8">
-        {grupos.map((g) => (
-          <Secao key={g.titulo} titulo={g.titulo} cor={g.cor} total={g.itens.length}>
-            {g.itens.map((t) => {
-              const n = t.negociacao_id ? negs[t.negociacao_id] : undefined
-              return (
-                <li key={t.id}>
-                  <button onClick={() => setAbrindo(t)} className="w-full rounded-xl border border-line bg-coal p-4 text-left hover:bg-white/5">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <p className="font-semibold text-white">{n ? nomeNeg(n) : t.titulo}</p>
-                      <p className="text-xs text-muted">{dataCurta(t.data_tarefa)}</p>
-                    </div>
-                    <p className="mt-1 text-xs text-muted">
-                      {t.motivo ?? t.titulo}
-                      {t.proxima_acao ? ` · próxima ação: ${t.proxima_acao}` : ''} · {rotulo(categoriasTarefa, t.categoria)}
-                      {n ? ` · etapa: ${rotuloEtapa(n.etapa)}` : ''}
-                    </p>
-                  </button>
-                </li>
-              )
-            })}
-          </Secao>
-        ))}
+      <Abas
+        abas={[
+          { valor: 'kanban', rotulo: 'Kanban', icone: Columns3 },
+          { valor: 'lista', rotulo: 'Lista', icone: List },
+        ]}
+        ativa={visao}
+        aoMudar={setVisao}
+      />
 
-        <Secao titulo="Negociações sem retorno programado (7+ dias paradas)" cor="text-amber-300" total={esquecidas.length}>
-          {esquecidas.map((n) => (
-            <li key={n.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-coal p-4">
-              <div>
-                <p className="font-semibold text-white">{nomeNeg(n)}</p>
-                <p className="text-xs text-muted">
-                  {rotuloEtapa(n.etapa)} · última atualização há {diasDesde(n.updated_at)} dias
-                  {n.lead ? ` · ${rotulo(interesses, n.lead.tipo_interesse)}` : ''}
-                </p>
-              </div>
-              <Botao variante="secundario" onClick={() => setNovo(n.id)}>
-                Criar follow-up
-              </Botao>
-            </li>
+      {visao === 'kanban' ? (
+        <Kanban
+          colunas={colunasPrazo}
+          itens={itensKanban}
+          colunaDe={(i) => i.coluna}
+          card={cartao}
+          podeMover={() => false}
+          aoMover={() => {}}
+          aoCriar={() => setNovo('')}
+          podeCriar={(c) => c !== 'sem_retorno'}
+          vazioColuna="Nada aqui."
+        />
+      ) : (
+        <div className="space-y-8">
+          {grupos.map((g) => (
+            <Secao key={g.titulo} titulo={g.titulo} cor={g.cor} total={g.itens.length}>
+              {g.itens.map((t) => {
+                const n = t.negociacao_id ? negs[t.negociacao_id] : undefined
+                return (
+                  <li key={t.id}>
+                    <button onClick={() => setAbrindo(t)} className="w-full rounded-xl border border-line bg-coal p-4 text-left hover:bg-white/5">
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <p className="font-semibold text-white">{n ? nomeNeg(n) : t.titulo}</p>
+                        <p className="text-xs text-muted">{dataCurta(t.data_tarefa)}</p>
+                      </div>
+                      <p className="mt-1 text-xs text-muted">
+                        {t.motivo ?? t.titulo}
+                        {t.proxima_acao ? ` · próxima ação: ${t.proxima_acao}` : ''} · {rotulo(categoriasTarefa, t.categoria)}
+                        {n ? ` · etapa: ${rotuloEtapa(n.etapa)}` : ''}
+                      </p>
+                    </button>
+                  </li>
+                )
+              })}
+            </Secao>
           ))}
-        </Secao>
-      </div>
+
+          <Secao titulo="Negociações sem retorno programado (7+ dias paradas)" cor="text-amber-300" total={esquecidas.length}>
+            {esquecidas.map((n) => (
+              <li key={n.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-coal p-4">
+                <div>
+                  <p className="font-semibold text-white">{nomeNeg(n)}</p>
+                  <p className="text-xs text-muted">
+                    {rotuloEtapa(n.etapa)} · última atualização há {diasDesde(n.updated_at)} dias
+                    {n.lead ? ` · ${rotulo(interesses, n.lead.tipo_interesse)}` : ''}
+                  </p>
+                </div>
+                <Botao variante="secundario" onClick={() => setNovo(n.id)}>
+                  Criar follow-up
+                </Botao>
+              </li>
+            ))}
+          </Secao>
+          {!lista.length && !esquecidas.length && <Vazio>Nenhum follow-up programado.</Vazio>}
+        </div>
+      )}
 
       {novo !== null && (
         <NovoFollowUp
@@ -201,9 +295,7 @@ function Secao({ titulo, cor, total, children }: { titulo: string; cor: string; 
 }
 
 function erroFollowUp(e: unknown) {
-  return /tarefas_follow_up_unico_idx|duplicate key/i.test((e as Error)?.message ?? '')
-    ? 'Já existe um follow-up em aberto para esta negociação nessa data.'
-    : erroAmigavel(e)
+  return /tarefas_follow_up_unico_idx|duplicate key/i.test((e as Error)?.message ?? '') ? 'Já existe um follow-up em aberto para esta negociação nessa data.' : erroAmigavel(e)
 }
 
 function NovoFollowUp({
@@ -226,7 +318,14 @@ function NovoFollowUp({
     motivo: motivos[0],
     proxima: '',
     data: hojeSP(),
-    categoria: inicial?.lead?.tipo_interesse === 'seguro' ? 'seguros' : inicial?.lead?.tipo_interesse === 'imovel' ? 'imobiliaria' : inicial?.lead?.tipo_interesse === 'consorcio' ? 'consorcios' : 'credito',
+    categoria:
+      inicial?.lead?.tipo_interesse === 'seguro'
+        ? 'seguros'
+        : inicial?.lead?.tipo_interesse === 'imovel'
+          ? 'imobiliaria'
+          : inicial?.lead?.tipo_interesse === 'consorcio'
+            ? 'consorcios'
+            : 'credito',
     responsavel: inicial?.responsavel_id ?? perfil?.id ?? '',
   })
   const muda = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value })
@@ -332,26 +431,19 @@ function NovoFollowUp({
 
 const tiposMensagem = [
   { valor: 'retorno_comercial', rotulo: 'Retorno comercial' },
-  { valor: 'acompanhamento_de_simulacao', rotulo: 'Acompanhamento de simulação' },
+  {
+    valor: 'acompanhamento_de_simulacao',
+    rotulo: 'Acompanhamento de simulação',
+  },
   { valor: 'solicitacao_de_documentos', rotulo: 'Pedido de documentos' },
 ]
 
-function Detalhe({
-  t,
-  n,
-  podeEditar,
-  aoFechar,
-  aoConcluir,
-}: {
-  t: Tarefa
-  n?: Neg
-  podeEditar: boolean
-  aoFechar: () => void
-  aoConcluir: (texto: string) => void
-}) {
+function Detalhe({ t, n, podeEditar, aoFechar, aoConcluir }: { t: Tarefa; n?: Neg; podeEditar: boolean; aoFechar: () => void; aoConcluir: (texto: string) => void }) {
   const [resultado, setResultado] = useState('')
   const [novaData, setNovaData] = useState(t.data_tarefa)
-  const [tipoMsg, setTipoMsg] = useState(t.motivo === 'Pediu simulação' ? 'acompanhamento_de_simulacao' : t.motivo === 'Aguardando documentos' ? 'solicitacao_de_documentos' : 'retorno_comercial')
+  const [tipoMsg, setTipoMsg] = useState(
+    t.motivo === 'Pediu simulação' ? 'acompanhamento_de_simulacao' : t.motivo === 'Aguardando documentos' ? 'solicitacao_de_documentos' : 'retorno_comercial',
+  )
   const [texto, setTexto] = useState<string | null>(null)
   const [rascunhoId, setRascunhoId] = useState<string | null>(null)
   const [copiado, setCopiado] = useState(false)
@@ -380,7 +472,14 @@ function Detalhe({
     mutationFn: async () => {
       const { data, error } = await supabase
         .from('rascunhos_mensagens')
-        .insert({ tipo: tipoMsg, status: 'aprovado', destinatario_nome: nomeNeg(n), destinatario_telefone: tel, conteudo: texto, negociacao_id: t.negociacao_id })
+        .insert({
+          tipo: tipoMsg,
+          status: 'aprovado',
+          destinatario_nome: nomeNeg(n),
+          destinatario_telefone: tel,
+          conteudo: texto,
+          negociacao_id: t.negociacao_id,
+        })
         .select('id')
         .single()
       if (error) throw error
@@ -390,7 +489,13 @@ function Detalhe({
   })
   const marcarEnviado = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('rascunhos_mensagens').update({ status: 'enviado_manual', enviado_em: new Date().toISOString() }).eq('id', rascunhoId!)
+      const { error } = await supabase
+        .from('rascunhos_mensagens')
+        .update({
+          status: 'enviado_manual',
+          enviado_em: new Date().toISOString(),
+        })
+        .eq('id', rascunhoId!)
       if (error) throw error
     },
   })
@@ -450,7 +555,14 @@ function Detalhe({
             </div>
             {texto !== null && (
               <>
-                <textarea className={`${estiloCampo} min-h-28`} value={texto} onChange={(e) => { setTexto(e.target.value); setRascunhoId(null) }} />
+                <textarea
+                  className={`${estiloCampo} min-h-28`}
+                  value={texto}
+                  onChange={(e) => {
+                    setTexto(e.target.value)
+                    setRascunhoId(null)
+                  }}
+                />
                 <div className="flex flex-wrap gap-2">
                   {!rascunhoId ? (
                     <Botao onClick={() => salvarRascunho.mutate()} disabled={salvarRascunho.isPending || !texto.trim()}>
@@ -471,7 +583,12 @@ function Detalhe({
                       >
                         {copiado ? 'Copiado' : 'Copiar'}
                       </Botao>
-                      <a href={linkWhats(tel, texto)} target="_blank" rel="noreferrer" className="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-white hover:border-gold hover:text-gold">
+                      <a
+                        href={linkWhats(tel, texto)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-white hover:border-gold hover:text-gold"
+                      >
                         Abrir no WhatsApp
                       </a>
                       <Botao variante="secundario" onClick={() => marcarEnviado.mutate()} disabled={marcarEnviado.isPending || marcarEnviado.isSuccess}>
@@ -490,35 +607,60 @@ function Detalhe({
       {!podeEditar ? (
         <p className="mt-6 border-t border-line pt-4 text-xs text-muted">Somente o administrador, o responsável ou quem criou pode concluir ou mudar este follow-up.</p>
       ) : (
-      <div className="mt-6 space-y-3 border-t border-line pt-4">
-        <Campo rotulo="Resultado do acompanhamento">
-          <textarea className={`${estiloCampo} min-h-16`} value={resultado} onChange={(e) => setResultado(e.target.value)} placeholder="Ex.: cliente vai enviar os documentos na sexta" />
-        </Campo>
-        <div className="flex flex-wrap items-end gap-2">
-          <Botao onClick={() => atualizar.mutate({ campos: { status: 'concluida', resultado: resultado || null }, ok: 'Follow-up concluído. A etapa da negociação não foi alterada.' })} disabled={atualizar.isPending}>
-            Concluir
-          </Botao>
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted">Nova data</span>
-            <input type="date" className={`${estiloCampo} py-2`} value={novaData} onChange={(e) => setNovaData(e.target.value)} />
-          </label>
-          <Botao
-            variante="secundario"
-            disabled={atualizar.isPending || novaData === t.data_tarefa}
-            onClick={() =>
-              atualizar.mutate({
-                campos: { data_tarefa: novaData, resultado: resultado || t.resultado },
-                ok: 'Data do retorno alterada.',
-              })
-            }
-          >
-            Mudar data
-          </Botao>
-          <Botao variante="perigo" onClick={() => confirm('Cancelar este follow-up?') && atualizar.mutate({ campos: { status: 'cancelada' }, ok: 'Follow-up cancelado.' })}>
-            Cancelar
-          </Botao>
+        <div className="mt-6 space-y-3 border-t border-line pt-4">
+          <Campo rotulo="Resultado do acompanhamento">
+            <textarea
+              className={`${estiloCampo} min-h-16`}
+              value={resultado}
+              onChange={(e) => setResultado(e.target.value)}
+              placeholder="Ex.: cliente vai enviar os documentos na sexta"
+            />
+          </Campo>
+          <div className="flex flex-wrap items-end gap-2">
+            <Botao
+              onClick={() =>
+                atualizar.mutate({
+                  campos: { status: 'concluida', resultado: resultado || null },
+                  ok: 'Follow-up concluído. A etapa da negociação não foi alterada.',
+                })
+              }
+              disabled={atualizar.isPending}
+            >
+              Concluir
+            </Botao>
+            <label className="block">
+              <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted">Nova data</span>
+              <input type="date" className={`${estiloCampo} py-2`} value={novaData} onChange={(e) => setNovaData(e.target.value)} />
+            </label>
+            <Botao
+              variante="secundario"
+              disabled={atualizar.isPending || novaData === t.data_tarefa}
+              onClick={() =>
+                atualizar.mutate({
+                  campos: {
+                    data_tarefa: novaData,
+                    resultado: resultado || t.resultado,
+                  },
+                  ok: 'Data do retorno alterada.',
+                })
+              }
+            >
+              Mudar data
+            </Botao>
+            <Botao
+              variante="perigo"
+              onClick={() =>
+                confirm('Cancelar este follow-up?') &&
+                atualizar.mutate({
+                  campos: { status: 'cancelada' },
+                  ok: 'Follow-up cancelado.',
+                })
+              }
+            >
+              Cancelar
+            </Botao>
+          </div>
         </div>
-      </div>
       )}
     </Modal>
   )
