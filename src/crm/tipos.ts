@@ -48,9 +48,10 @@ export interface Negociacao {
   observacoes: string | null
   responsavel_id: string
   created_at: string
+  updated_at?: string
   lead_id?: string | null
   cliente?: { nome_completo: string } | null
-  lead?: { nome: string } | null
+  lead?: { nome: string; tipo_interesse?: string } | null
 }
 
 // Valores aceitos pelo banco (enum negotiation_stage_type) e o nome mostrado na tela.

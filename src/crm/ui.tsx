@@ -59,6 +59,32 @@ export function Modal({ titulo, aoFechar, children }: { titulo: string; aoFechar
   )
 }
 
+// Painel lateral (detalhe de um card): ocupa a direita no computador e a tela toda no celular.
+export function PainelLateral({ titulo, subtitulo, aoFechar, children }: { titulo: string; subtitulo?: ReactNode; aoFechar: () => void; children: ReactNode }) {
+  useEffect(() => {
+    const tecla = (e: KeyboardEvent) => e.key === 'Escape' && aoFechar()
+    window.addEventListener('keydown', tecla)
+    return () => window.removeEventListener('keydown', tecla)
+  }, [aoFechar])
+  return (
+    <div className="fixed inset-0 z-50" role="dialog" aria-label={titulo}>
+      <div className="absolute inset-0 bg-black/60" onClick={aoFechar} />
+      <aside className="absolute inset-y-0 right-0 flex w-full max-w-xl flex-col border-l border-line bg-coal shadow-2xl">
+        <header className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
+          <div className="min-w-0">
+            <h2 className="truncate text-lg font-bold normal-case tracking-normal text-white">{titulo}</h2>
+            {subtitulo && <div className="mt-1">{subtitulo}</div>}
+          </div>
+          <button onClick={aoFechar} className="text-2xl leading-none text-muted hover:text-white" aria-label="Fechar">
+            ×
+          </button>
+        </header>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
+      </aside>
+    </div>
+  )
+}
+
 export function Aviso({ tipo = 'erro', children }: { tipo?: 'erro' | 'ok'; children: ReactNode }) {
   const cor = tipo === 'erro' ? 'border-red-500/40 bg-red-500/10 text-red-300' : 'border-green-500/40 bg-green-500/10 text-green-300'
   return <div className={`rounded-lg border px-4 py-3 text-sm ${cor}`}>{children}</div>
